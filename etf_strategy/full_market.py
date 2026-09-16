@@ -190,7 +190,13 @@ def report_run(folder, name, run, dataset, tests):
     (folder / "report.html").write_text(body, encoding="utf-8")
 
 
-def run_suite(path, output, start="2016-09-12", end="2026-09-11", results_db="data/etf_strategy.db"):
+def run_suite(
+    path,
+    output,
+    start="2016-09-12",
+    end="2026-09-11",
+    results_db="data/etf_strategy.db",
+):
     # Recompute stateful decisions separately under each cost/delay scenario.
     output.mkdir(parents=True, exist_ok=True)
     data = Dataset(path, load_config(overrides={"price_mode": "verified_prices"}), end)

@@ -33,7 +33,10 @@ def _parser() -> argparse.ArgumentParser:
     market.add_argument("area", choices=("pool", "stock", "etf"))
     market.add_argument("arguments", nargs=argparse.REMAINDER)
     research = sub.add_parser("research", help="策略研究")
-    research.add_argument("area", choices=("factor", "etf", "mvp", "three-momentum", "full-market", "ten-year"))
+    research.add_argument(
+        "area",
+        choices=("factor", "etf", "mvp", "three-momentum", "full-market", "ten-year"),
+    )
     research.add_argument("arguments", nargs=argparse.REMAINDER)
     accounts = sub.add_parser("accounts", help="ETF 账户和对账")
     accounts.add_argument("arguments", nargs=argparse.REMAINDER)

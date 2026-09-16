@@ -1,7 +1,0 @@
-numpy<3,>=2.2
-pandas<4,>=2.2
-matplotlib<4,>=3.9
-playwright==1.62.0
-
-[dev]
-pytest==9.1.1

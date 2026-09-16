@@ -1,0 +1,9 @@
+{
+  "version": "2.0.0",
+  "price_mode": "verified_prices",
+  "universe_mode": "survivors",
+  "universe_pool": "all_multi",
+  "target_volatility": 0.1,
+  "rotation_constraints": true,
+  "rotation_buffer": true
+}

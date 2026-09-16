@@ -1,0 +1,10 @@
+{
+  "model_version": "1.0.0",
+  "benchmark": "CSI_A500",
+  "execution": {
+    "buy_fee_bps": 3.0,
+    "sell_fee_bps": 3.0,
+    "sell_tax_bps": 5.0,
+    "impact_bps": 5.0
+  }
+}

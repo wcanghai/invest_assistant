@@ -1,0 +1,18 @@
+[
+  {
+    "event_id": "513100_split_20220113",
+    "etf_code": "513100.SH",
+    "record_date": "2022-01-12",
+    "ex_date": "2022-01-13",
+    "pay_date": "2022-01-13",
+    "cash_per_share": 0.0,
+    "share_multiplier": 5.0,
+    "known_at": "2022-01-04",
+    "source": "https://www.sse.com.cn/disclosure/fund/announcement/c/new/2022-01-04/513100_20220104_1_0U96WMU8.pdf",
+    "verified": 1,
+    "share_change_date": "2022-01-13",
+    "resume_date": "2022-01-14",
+    "published_at": "2022-01-04",
+    "collected_at": "2026-09-13T14:21:27.099194+00:00"
+  }
+]

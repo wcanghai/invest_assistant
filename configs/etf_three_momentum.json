@@ -1,0 +1,15 @@
+{
+  "codes": ["512890.SH", "159949.SZ", "513100.SH", "518880.SH"],
+  "bias_window": 60,
+  "momentum_window": 25,
+  "slope_window": 25,
+  "efficiency_window": 25,
+  "weights": [0.3, 0.3, 0.4],
+  "threshold": 1.5,
+  "threshold_mode": "signed_gap",
+  "initial_cash": 1000000,
+  "fee_bps": 3,
+  "slippage_bps": 5,
+  "lot_size": 100,
+  "start": "2019-01-01"
+}

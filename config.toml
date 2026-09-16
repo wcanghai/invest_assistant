@@ -1,0 +1,22 @@
+[paths]
+database_dir = "data/databases"
+state_dir = "data/state"
+evidence_dir = "data/evidence"
+report_dir = "reports"
+log_dir = "logs"
+backup_dir = "backups"
+
+[databases]
+market = "data/databases/market.db"
+research = "data/databases/research.db"
+accounts = "data/databases/accounts.db"
+reports = "data/databases/reports.db"
+
+[runtime]
+timezone = "Asia/Shanghai"
+report_host = "127.0.0.1"
+report_port = 8766
+
+[scheduler]
+report_slots = ["08:00", "15:30"]
+sync_not_before = "15:30"

@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: invest
+Version: 0.1.0
+Summary: 本地量化研究、市场数据与投资日报平台
+Requires-Python: <3.13,>=3.12
+Requires-Dist: numpy<3,>=2.2
+Requires-Dist: pandas<4,>=2.2
+Requires-Dist: matplotlib<4,>=3.9
+Requires-Dist: playwright==1.62.0
+Provides-Extra: dev
+Requires-Dist: pytest==9.1.1; extra == "dev"

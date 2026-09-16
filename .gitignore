@@ -1,0 +1,24 @@
+# 本机环境、运行数据与可再生输出
+.venv/
+.venv-report/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.tmp/
+.pytest_tmp_*/
+test-temp/
+data/databases/*.db
+data/databases/*.db-*
+data/databases/*.lock
+data/databases/*.collect.lock
+data/state/
+data/evidence/
+data/*.db
+data/*.db-*
+data/*.lock
+data/pytest_*/
+data/etf_three_momentum/
+backups/
+logs/
+reports/
+config.local.toml

@@ -1,0 +1,2 @@
+[console_scripts]
+invest = invest.cli:main

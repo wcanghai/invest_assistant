@@ -1,0 +1,874 @@
+{
+  "started_at": "2026-09-07T22:22:59.666103+08:00",
+  "database": "D:\\AI_Coding_WorkSpace\\invest_202609_2\\data\\security_pool.db",
+  "main_file_bytes": 11361726464,
+  "wal_file_bytes": 488014032,
+  "mode": "SQLite mode=ro; query_only=ON; single read transaction",
+  "queries": [
+    {
+      "name": "tables",
+      "sql": "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name",
+      "rows": [
+        {
+          "name": "backtest_nav"
+        },
+        {
+          "name": "backtest_trade"
+        },
+        {
+          "name": "convertible_bond_info"
+        },
+        {
+          "name": "etf_daily"
+        },
+        {
+          "name": "etf_data_sync_state"
+        },
+        {
+          "name": "etf_info"
+        },
+        {
+          "name": "etf_market_daily"
+        },
+        {
+          "name": "etf_master"
+        },
+        {
+          "name": "etf_snapshot"
+        },
+        {
+          "name": "factor_score_daily"
+        },
+        {
+          "name": "fetch_log"
+        },
+        {
+          "name": "ipo_info"
+        },
+        {
+          "name": "portfolio_target"
+        },
+        {
+          "name": "sqlite_sequence"
+        },
+        {
+          "name": "stock_capital_daily"
+        },
+        {
+          "name": "stock_corporate_action"
+        },
+        {
+          "name": "stock_current"
+        },
+        {
+          "name": "stock_daily_bar"
+        },
+        {
+          "name": "stock_data_sync_state"
+        },
+        {
+          "name": "stock_financial_report"
+        },
+        {
+          "name": "stock_master"
+        },
+        {
+          "name": "stock_sector_snapshot"
+        },
+        {
+          "name": "stock_snapshot"
+        },
+        {
+          "name": "stock_trade_daily"
+        },
+        {
+          "name": "strategy_run"
+        }
+      ],
+      "seconds": 0.0
+    },
+    {
+      "name": "snapshots",
+      "sql": "SELECT snapshot_date,COUNT(*) n FROM stock_snapshot GROUP BY snapshot_date",
+      "rows": [
+        {
+          "snapshot_date": "2026-08-28",
+          "n": 5562
+        },
+        {
+          "snapshot_date": "2026-08-31",
+          "n": 5563
+        },
+        {
+          "snapshot_date": "2026-09-02",
+          "n": 5565
+        },
+        {
+          "snapshot_date": "2026-09-04",
+          "n": 5566
+        }
+      ],
+      "seconds": 0.032
+    },
+    {
+      "name": "universe",
+      "sql": "SELECT COUNT(*) n,SUM(is_active) active,SUM(is_tradable) tradable,MIN(data_date) min_date,MAX(data_date) max_date FROM stock_current",
+      "rows": [
+        {
+          "n": 5566,
+          "active": 5566,
+          "tradable": 5352,
+          "min_date": "2026-09-04",
+          "max_date": "2026-09-04"
+        }
+      ],
+      "seconds": 0.0
+    },
+    {
+      "name": "stock_sync",
+      "sql": "SELECT data_domain,MIN(last_success_date) min_date,MAX(last_success_date) max_date,COUNT(*) n FROM stock_data_sync_state GROUP BY data_domain",
+      "rows": [
+        {
+          "data_domain": "action",
+          "min_date": "2026-09-04",
+          "max_date": "2026-09-04",
+          "n": 5566
+        },
+        {
+          "data_domain": "bar",
+          "min_date": "2026-09-04",
+          "max_date": "2026-09-04",
+          "n": 5566
+        },
+        {
+          "data_domain": "capital",
+          "min_date": "2026-09-04",
+          "max_date": "2026-09-04",
+          "n": 5566
+        },
+        {
+          "data_domain": "financial",
+          "min_date": "2026-09-02",
+          "max_date": "2026-09-04",
+          "n": 5566
+        },
+        {
+          "data_domain": "trade",
+          "min_date": "2026-09-04",
+          "max_date": "2026-09-04",
+          "n": 5566
+        }
+      ],
+      "seconds": 0.031
+    },
+    {
+      "name": "etf_sync",
+      "sql": "SELECT data_domain,MIN(last_success_date) min_date,MAX(last_success_date) max_date,COUNT(*) n FROM etf_data_sync_state GROUP BY data_domain",
+      "rows": [
+        {
+          "data_domain": "daily",
+          "min_date": "2026-09-04",
+          "max_date": "2026-09-04",
+          "n": 1718
+        }
+      ],
+      "seconds": 0.0
+    },
+    {
+      "name": "task_status",
+      "sql": "SELECT status,COUNT(*) n FROM fetch_log GROUP BY status",
+      "rows": [
+        {
+          "status": "FAILED",
+          "n": 1
+        },
+        {
+          "status": "INTERRUPTED",
+          "n": 21
+        },
+        {
+          "status": "PARTIAL_SUCCESS",
+          "n": 4
+        },
+        {
+          "status": "SUCCESS",
+          "n": 702
+        }
+      ],
+      "seconds": 0.0
+    },
+    {
+      "name": "unfinished_tasks",
+      "sql": "SELECT * FROM fetch_log WHERE status='RUNNING'",
+      "rows": [],
+      "seconds": 0.0
+    },
+    {
+      "name": "latest_tasks",
+      "sql": "SELECT * FROM fetch_log ORDER BY id DESC LIMIT 8",
+      "rows": [
+        {
+          "id": 728,
+          "data_date": "2026-09-04",
+          "task_type": "ETF_DATA_FULL",
+          "status": "SUCCESS",
+          "started_at": "2026-09-06T22:23:36",
+          "finished_at": "2026-09-06T22:36:43",
+          "stock_count": 1718,
+          "error_message": null
+        },
+        {
+          "id": 727,
+          "data_date": "2026-09-04",
+          "task_type": "STOCK_DATA_BULK_STAGE1",
+          "status": "SUCCESS",
+          "started_at": "2026-09-05T08:31:19",
+          "finished_at": "2026-09-05T08:31:20",
+          "stock_count": 10,
+          "error_message": null
+        },
+        {
+          "id": 726,
+          "data_date": "2026-09-04",
+          "task_type": "STOCK_DATA_BULK_FINANCIAL_CORE",
+          "status": "SUCCESS",
+          "started_at": "2026-09-05T08:25:43",
+          "finished_at": "2026-09-05T08:31:03",
+          "stock_count": 31,
+          "error_message": null
+        },
+        {
+          "id": 725,
+          "data_date": "2026-09-04",
+          "task_type": "STOCK_DATA_DAILY",
+          "status": "SUCCESS",
+          "started_at": "2026-09-05T08:19:50",
+          "finished_at": "2026-09-05T08:19:54",
+          "stock_count": 16,
+          "error_message": null
+        },
+        {
+          "id": 724,
+          "data_date": "2026-09-04",
+          "task_type": "STOCK_DATA_DAILY",
+          "status": "SUCCESS",
+          "started_at": "2026-09-05T08:19:42",
+          "finished_at": "2026-09-05T08:19:48",
+          "stock_count": 25,
+          "error_message": null
+        },
+        {
+          "id": 723,
+          "data_date": "2026-09-04",
+          "task_type": "STOCK_DATA_DAILY",
+          "status": "SUCCESS",
+          "started_at": "2026-09-05T08:19:32",
+          "finished_at": "2026-09-05T08:19:39",
+          "stock_count": 25,
+          "error_message": null
+        },
+        {
+          "id": 722,
+          "data_date": "2026-09-04",
+          "task_type": "STOCK_DATA_DAILY",
+          "status": "SUCCESS",
+          "started_at": "2026-09-05T08:19:23",
+          "finished_at": "2026-09-05T08:19:30",
+          "stock_count": 25,
+          "error_message": null
+        },
+        {
+          "id": 721,
+          "data_date": "2026-09-04",
+          "task_type": "STOCK_DATA_DAILY",
+          "status": "SUCCESS",
+          "started_at": "2026-09-05T08:19:13",
+          "finished_at": "2026-09-05T08:19:21",
+          "stock_count": 25,
+          "error_message": null
+        }
+      ],
+      "seconds": 0.0
+    },
+    {
+      "name": "financial_quality",
+      "sql": "SELECT COUNT(*) n,COUNT(DISTINCT stock_code) securities,MIN(report_date) min_report,MAX(report_date) max_report,MIN(announce_date) min_announce,MAX(announce_date) max_announce,SUM(announce_date<report_date) announce_before_report,SUM(announce_date='') empty_announce,SUM(revenue IS NULL) revenue_null,SUM(revenue=0) revenue_zero,SUM(parent_net_profit IS NULL) parent_profit_null,SUM(operating_cash_flow IS NULL) ocf_null,SUM(operating_cash_flow=0) ocf_zero FROM stock_financial_report",
+      "rows": [
+        {
+          "n": 265795,
+          "securities": 5535,
+          "min_report": "1991-12-31",
+          "max_report": "2026-06-30",
+          "min_announce": "1991-12-31",
+          "max_announce": "2026-08-31",
+          "announce_before_report": 0,
+          "empty_announce": 0,
+          "revenue_null": 0,
+          "revenue_zero": 3643,
+          "parent_profit_null": 0,
+          "ocf_null": 0,
+          "ocf_zero": 4822
+        }
+      ],
+      "seconds": 16.5
+    },
+    {
+      "name": "financial_latest_distribution",
+      "sql": "SELECT last_report,COUNT(*) n FROM (SELECT stock_code,MAX(report_date) last_report FROM stock_financial_report GROUP BY stock_code) GROUP BY last_report ORDER BY last_report DESC",
+      "rows": [
+        {
+          "last_report": "2026-06-30",
+          "n": 5534
+        },
+        {
+          "last_report": "2025-09-30",
+          "n": 1
+        }
+      ],
+      "seconds": 0.515
+    },
+    {
+      "name": "financial_missing",
+      "sql": "SELECT m.stock_code,c.stock_name,m.list_date,c.is_tradable FROM stock_master m JOIN stock_current c USING(stock_code) WHERE NOT EXISTS (SELECT 1 FROM stock_financial_report f WHERE f.stock_code=m.stock_code)",
+      "rows": [
+        {
+          "stock_code": "000885.SZ",
+          "stock_name": "城发环境",
+          "list_date": "1999-03-19",
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "000917.SZ",
+          "stock_name": "电广传媒",
+          "list_date": "1999-03-25",
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "002078.SZ",
+          "stock_name": "太阳纸业",
+          "list_date": "2006-11-16",
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "002195.SZ",
+          "stock_name": "岩山科技",
+          "list_date": "2007-12-12",
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "002196.SZ",
+          "stock_name": "方正电机",
+          "list_date": "2007-12-12",
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "002198.SZ",
+          "stock_name": "ST嘉应",
+          "list_date": "2007-12-18",
+          "is_tradable": 0
+        },
+        {
+          "stock_code": "002201.SZ",
+          "stock_name": "九鼎新材",
+          "list_date": "2007-12-26",
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "002202.SZ",
+          "stock_name": "金风科技",
+          "list_date": "2007-12-26",
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "002225.SZ",
+          "stock_name": "濮耐股份",
+          "list_date": "2008-04-25",
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "300437.SZ",
+          "stock_name": "清水源",
+          "list_date": "2015-04-23",
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "301689.SZ",
+          "stock_name": "电科思仪",
+          "list_date": null,
+          "is_tradable": 0
+        },
+        {
+          "stock_code": "301699.SZ",
+          "stock_name": "洛轴股份",
+          "list_date": null,
+          "is_tradable": 0
+        },
+        {
+          "stock_code": "603448.SH",
+          "stock_name": "天博智能",
+          "list_date": null,
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "603468.SH",
+          "stock_name": "津富士达",
+          "list_date": "2026-08-06",
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "688801.SH",
+          "stock_name": "燧原科技",
+          "list_date": null,
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "688828.SH",
+          "stock_name": "国仪公司-U",
+          "list_date": "2026-08-11",
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "688835.SH",
+          "stock_name": "高凯技术",
+          "list_date": "2026-08-25",
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "688836.SH",
+          "stock_name": "宇树科技-W",
+          "list_date": "2026-08-19",
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "688837.SH",
+          "stock_name": "信诺维",
+          "list_date": null,
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "920059.BJ",
+          "stock_name": "双英集团",
+          "list_date": "2026-08-19",
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "920071.BJ",
+          "stock_name": "金钛股份",
+          "list_date": null,
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "920093.BJ",
+          "stock_name": "信胜科技",
+          "list_date": "2026-08-21",
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "920107.BJ",
+          "stock_name": "恒兴股份",
+          "list_date": "2026-08-17",
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "920258.BJ",
+          "stock_name": "聚仁新材",
+          "list_date": "2026-08-03",
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "920269.BJ",
+          "stock_name": "杰锋动力",
+          "list_date": null,
+          "is_tradable": 0
+        },
+        {
+          "stock_code": "920288.BJ",
+          "stock_name": "华大海天",
+          "list_date": "2026-08-28",
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "920289.BJ",
+          "stock_name": "N华汇",
+          "list_date": null,
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "920268.BJ",
+          "stock_name": "百迈科",
+          "list_date": null,
+          "is_tradable": 0
+        },
+        {
+          "stock_code": "601091.SH",
+          "stock_name": "沈鼓集团",
+          "list_date": null,
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "920298.BJ",
+          "stock_name": "腾信精密",
+          "list_date": null,
+          "is_tradable": 0
+        },
+        {
+          "stock_code": "301686.SZ",
+          "stock_name": "中塑股份",
+          "list_date": null,
+          "is_tradable": 0
+        }
+      ],
+      "seconds": 0.172
+    },
+    {
+      "name": "missing_listing",
+      "sql": "SELECT m.stock_code,c.stock_name,m.list_date,c.is_tradable FROM stock_master m JOIN stock_current c USING(stock_code) WHERE m.list_date IS NULL OR m.list_date=''",
+      "rows": [
+        {
+          "stock_code": "301688.SZ",
+          "stock_name": "C格林",
+          "list_date": null,
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "301689.SZ",
+          "stock_name": "电科思仪",
+          "list_date": null,
+          "is_tradable": 0
+        },
+        {
+          "stock_code": "301697.SZ",
+          "stock_name": "C贝特利",
+          "list_date": null,
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "301699.SZ",
+          "stock_name": "洛轴股份",
+          "list_date": null,
+          "is_tradable": 0
+        },
+        {
+          "stock_code": "601123.SH",
+          "stock_name": "C马矿",
+          "list_date": null,
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "603448.SH",
+          "stock_name": "天博智能",
+          "list_date": null,
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "688801.SH",
+          "stock_name": "燧原科技",
+          "list_date": null,
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "688837.SH",
+          "stock_name": "信诺维",
+          "list_date": null,
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "920071.BJ",
+          "stock_name": "金钛股份",
+          "list_date": null,
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "920269.BJ",
+          "stock_name": "杰锋动力",
+          "list_date": null,
+          "is_tradable": 0
+        },
+        {
+          "stock_code": "920289.BJ",
+          "stock_name": "N华汇",
+          "list_date": null,
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "920268.BJ",
+          "stock_name": "百迈科",
+          "list_date": null,
+          "is_tradable": 0
+        },
+        {
+          "stock_code": "601091.SH",
+          "stock_name": "沈鼓集团",
+          "list_date": null,
+          "is_tradable": 1
+        },
+        {
+          "stock_code": "920298.BJ",
+          "stock_name": "腾信精密",
+          "list_date": null,
+          "is_tradable": 0
+        },
+        {
+          "stock_code": "301686.SZ",
+          "stock_name": "中塑股份",
+          "list_date": null,
+          "is_tradable": 0
+        }
+      ],
+      "seconds": 0.016
+    },
+    {
+      "name": "latest_bar_quality",
+      "sql": "SELECT COUNT(*) n,SUM(close>0) positive_close,SUM(is_trading=1) trading,SUM(forward_factor IS NULL) missing_factor,SUM(pre_close IS NULL) missing_preclose,SUM(pct_change IS NULL) missing_return,SUM(close>high OR close<low OR open>high OR open<low) bad_ohlc FROM stock_daily_bar WHERE trade_date=(SELECT MAX(trade_date) FROM stock_daily_bar)",
+      "rows": [
+        {
+          "n": 5556,
+          "positive_close": 5556,
+          "trading": 5548,
+          "missing_factor": 0,
+          "missing_preclose": 1,
+          "missing_return": 1,
+          "bad_ohlc": 0
+        }
+      ],
+      "seconds": 0.172
+    },
+    {
+      "name": "latest_trade_coverage",
+      "sql": "SELECT COUNT(*) n,MAX(trade_date) trade_date,COUNT(total_market_cap_10k) market_cap,COUNT(dividend_yield_pct) dividend,COUNT(northbound_holding_shares) northbound,COUNT(financing_balance_10k) margin,COUNT(pledge_ratio_pct) pledge,COUNT(market_popularity_rank) popularity,COUNT(limit_status) limit_status FROM stock_trade_daily WHERE trade_date=(SELECT MAX(trade_date) FROM stock_trade_daily)",
+      "rows": [
+        {
+          "n": 5566,
+          "trade_date": "2026-09-04",
+          "market_cap": 0,
+          "dividend": 0,
+          "northbound": 0,
+          "margin": 0,
+          "pledge": 0,
+          "popularity": 0,
+          "limit_status": 50
+        }
+      ],
+      "seconds": 0.328
+    },
+    {
+      "name": "latest_etf_coverage",
+      "sql": "SELECT COUNT(*) n,MAX(trade_date) trade_date,COUNT(close) close_n,COUNT(unit_nav) nav_n,COUNT(shares_10k) shares_n,COUNT(net_subscription_10k) subscription_n FROM etf_daily WHERE trade_date=(SELECT MAX(trade_date) FROM etf_daily)",
+      "rows": [
+        {
+          "n": 1718,
+          "trade_date": "2026-09-04",
+          "close_n": 1670,
+          "nav_n": 0,
+          "shares_n": 0,
+          "subscription_n": 0
+        }
+      ],
+      "seconds": 0.36
+    },
+    {
+      "name": "etf_master_quality",
+      "sql": "SELECT COUNT(*) n,SUM(list_date IS NULL OR list_date='') missing_listing,SUM(underlying_code IS NULL OR underlying_code='') missing_underlying,SUM(is_t0) t0 FROM etf_master",
+      "rows": [
+        {
+          "n": 1718,
+          "missing_listing": 61,
+          "missing_underlying": 28,
+          "t0": 343
+        }
+      ],
+      "seconds": 0.0
+    },
+    {
+      "name": "etf_field_latest",
+      "sql": "SELECT MAX(CASE WHEN close IS NOT NULL THEN trade_date END) close_date,MAX(CASE WHEN unit_nav IS NOT NULL THEN trade_date END) nav_date,MAX(CASE WHEN shares_10k IS NOT NULL THEN trade_date END) shares_date,COUNT(net_subscription_10k) subscription_n FROM etf_daily",
+      "rows": [
+        {
+          "close_date": "2026-09-04",
+          "nav_date": "2026-09-02",
+          "shares_date": "2026-09-01",
+          "subscription_n": 0
+        }
+      ],
+      "seconds": 9.672
+    },
+    {
+      "name": "stock_master",
+      "sql": "SELECT COUNT(*) n,COUNT(DISTINCT stock_code) securities,MIN(first_seen_date) min_date,MAX(first_seen_date) max_date FROM stock_master",
+      "rows": [
+        {
+          "n": 5566,
+          "securities": 5566,
+          "min_date": "2026-08-28",
+          "max_date": "2026-09-04"
+        }
+      ],
+      "seconds": 0.031
+    },
+    {
+      "name": "stock_sector_snapshot",
+      "sql": "SELECT COUNT(*) n,COUNT(DISTINCT stock_code) securities,MIN(snapshot_date) min_date,MAX(snapshot_date) max_date FROM stock_sector_snapshot",
+      "rows": [
+        {
+          "n": 421337,
+          "securities": 5566,
+          "min_date": "2026-08-28",
+          "max_date": "2026-09-04"
+        }
+      ],
+      "seconds": 2.281
+    },
+    {
+      "name": "stock_daily_bar",
+      "sql": "SELECT COUNT(*) n,COUNT(DISTINCT stock_code) securities,MIN(trade_date) min_date,MAX(trade_date) max_date FROM stock_daily_bar",
+      "rows": [
+        {
+          "n": 16682675,
+          "securities": 5562,
+          "min_date": "2004-01-02",
+          "max_date": "2026-09-04"
+        }
+      ],
+      "seconds": 77.219
+    },
+    {
+      "name": "stock_capital_daily",
+      "sql": "SELECT COUNT(*) n,COUNT(DISTINCT stock_code) securities,MIN(trade_date) min_date,MAX(trade_date) max_date FROM stock_capital_daily",
+      "rows": [
+        {
+          "n": 15336962,
+          "securities": 5556,
+          "min_date": "2004-01-02",
+          "max_date": "2026-09-04"
+        }
+      ],
+      "seconds": 50.735
+    },
+    {
+      "name": "stock_corporate_action",
+      "sql": "SELECT COUNT(*) n,COUNT(DISTINCT stock_code) securities,MIN(event_date) min_date,MAX(event_date) max_date FROM stock_corporate_action",
+      "rows": [
+        {
+          "n": 54189,
+          "securities": 5417,
+          "min_date": "1991-03-12",
+          "max_date": "2026-09-04"
+        }
+      ],
+      "seconds": 0.188
+    },
+    {
+      "name": "stock_trade_daily",
+      "sql": "SELECT COUNT(*) n,COUNT(DISTINCT stock_code) securities,MIN(trade_date) min_date,MAX(trade_date) max_date FROM stock_trade_daily",
+      "rows": [
+        {
+          "n": 13461409,
+          "securities": 5566,
+          "min_date": "1991-04-17",
+          "max_date": "2026-09-04"
+        }
+      ],
+      "seconds": 41.015
+    },
+    {
+      "name": "etf_daily",
+      "sql": "SELECT COUNT(*) n,COUNT(DISTINCT etf_code) securities,MIN(trade_date) min_date,MAX(trade_date) max_date FROM etf_daily",
+      "rows": [
+        {
+          "n": 2009173,
+          "securities": 1718,
+          "min_date": "2005-02-23",
+          "max_date": "2026-09-04"
+        }
+      ],
+      "seconds": 2.829
+    },
+    {
+      "name": "etf_market_daily",
+      "sql": "SELECT COUNT(*) n,MIN(trade_date) min_date,MAX(trade_date) max_date FROM etf_market_daily",
+      "rows": [
+        {
+          "n": 2000,
+          "min_date": "2018-06-04",
+          "max_date": "2026-08-28"
+        }
+      ],
+      "seconds": 0.0
+    },
+    {
+      "name": "etf_snapshot",
+      "sql": "SELECT COUNT(*) n,COUNT(DISTINCT etf_code) securities,MIN(snapshot_date) min_date,MAX(snapshot_date) max_date FROM etf_snapshot",
+      "rows": [
+        {
+          "n": 1588,
+          "securities": 1588,
+          "min_date": "2026-09-04",
+          "max_date": "2026-09-04"
+        }
+      ],
+      "seconds": 0.0
+    },
+    {
+      "name": "strategy_run",
+      "sql": "SELECT COUNT(*) n FROM strategy_run",
+      "rows": [
+        {
+          "n": 0
+        }
+      ],
+      "seconds": 0.0
+    },
+    {
+      "name": "factor_score_daily",
+      "sql": "SELECT COUNT(*) n,COUNT(DISTINCT stock_code) securities,MIN(factor_date) min_date,MAX(factor_date) max_date FROM factor_score_daily",
+      "rows": [
+        {
+          "n": 11131,
+          "securities": 5566,
+          "min_date": "2026-09-02",
+          "max_date": "2026-09-04"
+        }
+      ],
+      "seconds": 0.031
+    },
+    {
+      "name": "portfolio_target",
+      "sql": "SELECT COUNT(*) n,COUNT(DISTINCT stock_code) securities,MIN(rebalance_date) min_date,MAX(rebalance_date) max_date FROM portfolio_target",
+      "rows": [
+        {
+          "n": 50,
+          "securities": 50,
+          "min_date": "2026-09-04",
+          "max_date": "2026-09-04"
+        }
+      ],
+      "seconds": 0.0
+    },
+    {
+      "name": "backtest_nav",
+      "sql": "SELECT COUNT(*) n,MIN(trade_date) min_date,MAX(trade_date) max_date FROM backtest_nav",
+      "rows": [
+        {
+          "n": 0,
+          "min_date": null,
+          "max_date": null
+        }
+      ],
+      "seconds": 0.0
+    },
+    {
+      "name": "backtest_trade",
+      "sql": "SELECT COUNT(*) n,COUNT(DISTINCT stock_code) securities,MIN(trade_date) min_date,MAX(trade_date) max_date FROM backtest_trade",
+      "rows": [
+        {
+          "n": 0,
+          "securities": 0,
+          "min_date": null,
+          "max_date": null
+        }
+      ],
+      "seconds": 0.0
+    }
+  ],
+  "finished_at": "2026-09-07T22:26:21.939052+08:00"
+}

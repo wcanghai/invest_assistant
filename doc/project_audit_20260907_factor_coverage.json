@@ -1,0 +1,182 @@
+{
+  "factor_date": "2026-09-04",
+  "all_rows": 5566,
+  "universe_rows": 4088,
+  "factors": {
+    "accrual_quality": {
+      "raw_nonnull": 5266,
+      "score_nonnull": 3895,
+      "universe_raw_nonnull": 3895
+    },
+    "amihud_20d": {
+      "raw_nonnull": 5555,
+      "score_nonnull": 4088,
+      "universe_raw_nonnull": 4088
+    },
+    "amount_20d": {
+      "raw_nonnull": 5556,
+      "score_nonnull": 4088,
+      "universe_raw_nonnull": 4088
+    },
+    "amount_stability": {
+      "raw_nonnull": 5555,
+      "score_nonnull": 4088,
+      "universe_raw_nonnull": 4088
+    },
+    "book_to_price": {
+      "raw_nonnull": 5490,
+      "score_nonnull": 4068,
+      "universe_raw_nonnull": 4068
+    },
+    "deduct_profit_yield": {
+      "raw_nonnull": 2800,
+      "score_nonnull": 2227,
+      "universe_raw_nonnull": 2227
+    },
+    "deduct_profit_yoy": {
+      "raw_nonnull": 3890,
+      "score_nonnull": 2953,
+      "universe_raw_nonnull": 2953
+    },
+    "dividend_yield": {
+      "raw_nonnull": 0,
+      "score_nonnull": 0,
+      "universe_raw_nonnull": 0
+    },
+    "downside_vol_60d": {
+      "raw_nonnull": 5554,
+      "score_nonnull": 4088,
+      "universe_raw_nonnull": 4088
+    },
+    "earnings_yield": {
+      "raw_nonnull": 3055,
+      "score_nonnull": 2423,
+      "universe_raw_nonnull": 2423
+    },
+    "financing_flow_20d": {
+      "raw_nonnull": 3859,
+      "score_nonnull": 3073,
+      "universe_raw_nonnull": 3073
+    },
+    "gross_margin": {
+      "raw_nonnull": 5535,
+      "score_nonnull": 4077,
+      "universe_raw_nonnull": 4077
+    },
+    "growth_stability": {
+      "raw_nonnull": 5490,
+      "score_nonnull": 4051,
+      "universe_raw_nonnull": 4051
+    },
+    "idiosyncratic_vol_120d": {
+      "raw_nonnull": 5499,
+      "score_nonnull": 4063,
+      "universe_raw_nonnull": 4063
+    },
+    "limit_order_strength": {
+      "raw_nonnull": 50,
+      "score_nonnull": 42,
+      "universe_raw_nonnull": 42
+    },
+    "low_leverage": {
+      "raw_nonnull": 5413,
+      "score_nonnull": 3957,
+      "universe_raw_nonnull": 3957
+    },
+    "low_pledge": {
+      "raw_nonnull": 0,
+      "score_nonnull": 0,
+      "universe_raw_nonnull": 0
+    },
+    "max_drawdown_120d": {
+      "raw_nonnull": 5515,
+      "score_nonnull": 4072,
+      "universe_raw_nonnull": 4072
+    },
+    "momentum_12_1": {
+      "raw_nonnull": 5398,
+      "score_nonnull": 4025,
+      "universe_raw_nonnull": 4025
+    },
+    "momentum_3_1": {
+      "raw_nonnull": 5513,
+      "score_nonnull": 4071,
+      "universe_raw_nonnull": 4071
+    },
+    "momentum_6_1": {
+      "raw_nonnull": 5468,
+      "score_nonnull": 4052,
+      "universe_raw_nonnull": 4052
+    },
+    "northbound_change_20d": {
+      "raw_nonnull": 3748,
+      "score_nonnull": 3186,
+      "universe_raw_nonnull": 3186
+    },
+    "ocf_to_assets": {
+      "raw_nonnull": 5266,
+      "score_nonnull": 3895,
+      "universe_raw_nonnull": 3895
+    },
+    "ocf_yield": {
+      "raw_nonnull": 5388,
+      "score_nonnull": 4015,
+      "universe_raw_nonnull": 4015
+    },
+    "parent_profit_yoy": {
+      "raw_nonnull": 4109,
+      "score_nonnull": 3117,
+      "universe_raw_nonnull": 3117
+    },
+    "popularity_trend": {
+      "raw_nonnull": 5551,
+      "score_nonnull": 4088,
+      "universe_raw_nonnull": 4088
+    },
+    "profit_stability": {
+      "raw_nonnull": 5490,
+      "score_nonnull": 4051,
+      "universe_raw_nonnull": 4051
+    },
+    "revenue_cagr_3y": {
+      "raw_nonnull": 5128,
+      "score_nonnull": 3863,
+      "universe_raw_nonnull": 3863
+    },
+    "revenue_yoy": {
+      "raw_nonnull": 5380,
+      "score_nonnull": 4011,
+      "universe_raw_nonnull": 4011
+    },
+    "reversal_5d": {
+      "raw_nonnull": 5551,
+      "score_nonnull": 4088,
+      "universe_raw_nonnull": 4088
+    },
+    "roe_ttm": {
+      "raw_nonnull": 5348,
+      "score_nonnull": 4009,
+      "universe_raw_nonnull": 4009
+    },
+    "shareholder_change": {
+      "raw_nonnull": 5485,
+      "score_nonnull": 4058,
+      "universe_raw_nonnull": 4058
+    },
+    "trend_20d": {
+      "raw_nonnull": 5539,
+      "score_nonnull": 4085,
+      "universe_raw_nonnull": 4085
+    },
+    "turnover_stability": {
+      "raw_nonnull": 5555,
+      "score_nonnull": 4088,
+      "universe_raw_nonnull": 4088
+    },
+    "volatility_60d": {
+      "raw_nonnull": 5554,
+      "score_nonnull": 4088,
+      "universe_raw_nonnull": 4088
+    }
+  }
+}

@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>每日市场观察</title><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/style.css"></head>
+<body>
+<header><div class="brand"><span class="mark">日</span><div><strong>每日市场观察</strong><small>本地投资日报</small></div></div>
+<div class="actions"><label for="versions">历史日报</label><select id="versions"><option>读取中…</option></select>
+<a id="download" href="/report.md">导出 Markdown</a><button id="refresh">更新网页行情</button></div></header>
+<main><div class="heading"><div><p class="eyebrow">MARKET DAILY</p><h1 id="title">正在读取日报</h1>
+<p id="meta"></p></div><span id="status" class="badge"></span></div>
+<p id="job" role="status" aria-live="polite"></p>
+<div id="empty" hidden>暂无日报。点击“更新网页行情”，将采集外部市场并读取本地最新交易日数据。</div>
+<div id="content" hidden><section class="summary" id="summary" aria-label="市场概览"></section>
+<nav id="navigation" aria-label="日报章节"></nav><div id="sections"></div>
+<section><div class="section-title"><h2>沪深北市场宽度</h2><span>本地股票逐只汇总</span></div><div id="markets"></div></section>
+<section><div class="section-title"><h2>行业概览</h2><span>当日股票等权统计</span></div><div id="industries"></div></section>
+<section><div class="section-title"><h2>未来 14 天申购日历</h2><span>本地发行记录</span></div><div id="offerings"></div></section>
+<section class="notes"><h2>数据说明</h2><ul id="warnings"></ul></section></div>
+</main><footer>本地保存 · 历史版本可追溯 · 每个市场保留独立数据时间</footer>
+<script src="/app.js" defer></script></body></html>

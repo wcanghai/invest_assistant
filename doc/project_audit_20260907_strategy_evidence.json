@@ -1,0 +1,240 @@
+[
+  {
+    "name": "score_coverage",
+    "sql": "SELECT factor_date,COUNT(*) n,SUM(universe_flag) universe_n,COUNT(total_score) total_n,COUNT(value_score) value_n,COUNT(quality_score) quality_n,COUNT(growth_score) growth_n,COUNT(momentum_score) momentum_n,COUNT(low_risk_score) risk_n,COUNT(flow_sentiment_score) flow_n,COUNT(liquidity_score) liquidity_n,MIN(valid_factor_count) min_factors,MAX(valid_factor_count) max_factors,COUNT(DISTINCT run_id) runs FROM factor_score_daily GROUP BY factor_date",
+    "rows": [
+      {
+        "factor_date": "2026-09-02",
+        "n": 5565,
+        "universe_n": 4071,
+        "total_n": 273,
+        "value_n": 195,
+        "quality_n": 274,
+        "growth_n": 273,
+        "momentum_n": 4052,
+        "risk_n": 4071,
+        "flow_n": 3590,
+        "liquidity_n": 4071,
+        "min_factors": 0,
+        "max_factors": 33,
+        "runs": 1
+      },
+      {
+        "factor_date": "2026-09-04",
+        "n": 5566,
+        "universe_n": 4088,
+        "total_n": 4006,
+        "value_n": 2507,
+        "quality_n": 4051,
+        "growth_n": 4000,
+        "momentum_n": 4071,
+        "risk_n": 4088,
+        "flow_n": 3612,
+        "liquidity_n": 4088,
+        "min_factors": 0,
+        "max_factors": 33,
+        "runs": 1
+      }
+    ]
+  },
+  {
+    "name": "portfolio_totals",
+    "sql": "SELECT rebalance_date,COUNT(*) n,SUM(target_weight) weight,MIN(target_weight) min_weight,MAX(target_weight) max_weight,COUNT(DISTINCT run_id) runs FROM portfolio_target GROUP BY rebalance_date",
+    "rows": [
+      {
+        "rebalance_date": "2026-09-04",
+        "n": 50,
+        "weight": 1.0,
+        "min_weight": 0.012313739221243037,
+        "max_weight": 0.03,
+        "runs": 1
+      }
+    ]
+  },
+  {
+    "name": "portfolio_industries",
+    "sql": "SELECT industry_code,COUNT(*) n,SUM(target_weight) weight FROM portfolio_target WHERE rebalance_date='2026-09-04' GROUP BY industry_code ORDER BY weight DESC",
+    "rows": [
+      {
+        "industry_code": "X6201",
+        "n": 7,
+        "weight": 0.15652425983827187
+      },
+      {
+        "industry_code": "X2202",
+        "n": 3,
+        "weight": 0.061785386515624395
+      },
+      {
+        "industry_code": "X2603",
+        "n": 3,
+        "weight": 0.05799968850387001
+      },
+      {
+        "industry_code": "X3203",
+        "n": 2,
+        "weight": 0.04766923025788032
+      },
+      {
+        "industry_code": "X3202",
+        "n": 3,
+        "weight": 0.04730055337130321
+      },
+      {
+        "industry_code": "X1204",
+        "n": 2,
+        "weight": 0.043610889739330395
+      },
+      {
+        "industry_code": "X4202",
+        "n": 3,
+        "weight": 0.04228268712308653
+      },
+      {
+        "industry_code": "X4003",
+        "n": 2,
+        "weight": 0.036123704212657134
+      },
+      {
+        "industry_code": "X4203",
+        "n": 1,
+        "weight": 0.03
+      },
+      {
+        "industry_code": "X2303",
+        "n": 1,
+        "weight": 0.03
+      },
+      {
+        "industry_code": "X2002",
+        "n": 1,
+        "weight": 0.03
+      },
+      {
+        "industry_code": "X1203",
+        "n": 1,
+        "weight": 0.029720136704221148
+      },
+      {
+        "industry_code": "X5103",
+        "n": 2,
+        "weight": 0.028646500879173087
+      },
+      {
+        "industry_code": "X1205",
+        "n": 1,
+        "weight": 0.027589110707243326
+      },
+      {
+        "industry_code": "X5301",
+        "n": 1,
+        "weight": 0.027370780353455543
+      },
+      {
+        "industry_code": "X2702",
+        "n": 1,
+        "weight": 0.026576858658641067
+      },
+      {
+        "industry_code": "X2703",
+        "n": 2,
+        "weight": 0.02546222471533224
+      },
+      {
+        "industry_code": "X3003",
+        "n": 1,
+        "weight": 0.024014100788719357
+      },
+      {
+        "industry_code": "X3005",
+        "n": 1,
+        "weight": 0.023875301801097946
+      },
+      {
+        "industry_code": "X2103",
+        "n": 1,
+        "weight": 0.022874626144454343
+      },
+      {
+        "industry_code": "X3001",
+        "n": 1,
+        "weight": 0.022484375300987958
+      },
+      {
+        "industry_code": "X3102",
+        "n": 1,
+        "weight": 0.02008598877330713
+      },
+      {
+        "industry_code": "X2302",
+        "n": 1,
+        "weight": 0.017261130844213213
+      },
+      {
+        "industry_code": "X2201",
+        "n": 1,
+        "weight": 0.016764077202782977
+      },
+      {
+        "industry_code": "X3004",
+        "n": 1,
+        "weight": 0.015982334799094923
+      },
+      {
+        "industry_code": "X1101",
+        "n": 1,
+        "weight": 0.015698662563382145
+      },
+      {
+        "industry_code": "X2706",
+        "n": 1,
+        "weight": 0.015319048273601947
+      },
+      {
+        "industry_code": "X6202",
+        "n": 1,
+        "weight": 0.015205779903046307
+      },
+      {
+        "industry_code": "X6005",
+        "n": 1,
+        "weight": 0.014388888086789972
+      },
+      {
+        "industry_code": "X4002",
+        "n": 1,
+        "weight": 0.013853581570545389
+      },
+      {
+        "industry_code": "X2503",
+        "n": 1,
+        "weight": 0.013530092367886173
+      }
+    ]
+  },
+  {
+    "name": "score_model_versions",
+    "sql": "SELECT model_version,run_id,COUNT(*) n FROM factor_score_daily GROUP BY model_version,run_id",
+    "rows": [
+      {
+        "model_version": "1.0.0",
+        "run_id": "0e8a323b92cc4ad586fce1aa14dc12b3",
+        "n": 5566
+      },
+      {
+        "model_version": "1.0.0",
+        "run_id": "1523ca33046b4496a643dca148343a7c",
+        "n": 5565
+      }
+    ]
+  },
+  {
+    "name": "factor_keys_sample",
+    "sql": "SELECT factor_detail_json FROM factor_score_daily WHERE factor_date='2026-09-04' AND total_score IS NOT NULL LIMIT 1",
+    "rows": [
+      {
+        "factor_detail_json": "{\"accrual_quality\": {\"raw\": -0.025416039894005118, \"score\": -0.9591772619290918}, \"amihud_20d\": {\"raw\": -1.4874407016490552e-10, \"score\": 1.332217146885409}, \"amount_20d\": {\"raw\": 18.888004660974257, \"score\": 1.0596933340964845}, \"amount_stability\": {\"raw\": -0.337157069115821, \"score\": 0.9850218033555628}, \"book_to_price\": {\"raw\": 0.33746195507103566, \"score\": 0.20330097704772182}, \"deduct_profit_yield\": {\"raw\": 0.0283838771968667, \"score\": 2.3637216370875347}, \"deduct_profit_yoy\": {\"raw\": 1.7329008205224503, \"score\": 1.832853421285614}, \"dividend_yield\": {\"raw\": null, \"score\": null}, \"downside_vol_60d\": {\"raw\": -0.3714310196345637, \"score\": 0.05219046720021758}, \"earnings_yield\": {\"raw\": 0.0280225393221988, \"score\": 1.9912464433436339}, \"financing_flow_20d\": {\"raw\": 0.03422515622856145, \"score\": 1.4339354466975185}, \"gross_margin\": {\"raw\": 0.3428, \"score\": 0.8621079552617652}, \"growth_stability\": {\"raw\": -19.93802325779994, \"score\": -0.24688494603859837}, \"idiosyncratic_vol_120d\": {\"raw\": -0.45393824040102004, \"score\": 0.26251579443949347}, \"limit_order_strength\": {\"raw\": null, \"score\": null}, \"low_leverage\": {\"raw\": -0.32595719604748236, \"score\": 0.38087012555711397}, \"low_pledge\": {\"raw\": null, \"score\": null}, \"max_drawdown_120d\": {\"raw\": -0.3544893932099119, \"score\": 1.1323823221003468}, \"momentum_12_1\": {\"raw\": 0.5108145120850889, \"score\": 1.7243327380465807}, \"momentum_3_1\": {\"raw\": 0.1022685693377241, \"score\": 2.1699731634498756}, \"momentum_6_1\": {\"raw\": -0.1371302765640764, \"score\": 0.45682959897874414}, \"northbound_change_20d\": {\"raw\": null, \"score\": null}, \"ocf_to_assets\": {\"raw\": 0.03811407908099371, \"score\": 0.6467518471459935}, \"ocf_yield\": {\"raw\": 0.019281686644796747, \"score\": 0.46881580155634056}, \"parent_profit_yoy\": {\"raw\": 0.5343935333209937, \"score\": 1.148917252675456}, \"popularity_trend\": {\"raw\": 0.00433526011560692, \"score\": -0.020510218889295766}, \"profit_stability\": {\"raw\": -4.832141642909783, \"score\": -1.033423693940388}, \"revenue_cagr_3y\": {\"raw\": null, \"score\": null}, \"revenue_yoy\": {\"raw\": 0.18473089153818756, \"score\": 0.8091893032347164}, \"reversal_5d\": {\"raw\": 0.0053626869884277895, \"score\": -0.20373883599254677}, \"roe_ttm\": {\"raw\": 0.08103756682854689, \"score\": 2.087981518456869}, \"shareholder_change\": {\"raw\": 0.21252086811352255, \"score\": 1.4708192487193668}, \"trend_20d\": {\"raw\": 0.16727393176548522, \"score\": 1.436387155764326}, \"turnover_stability\": {\"raw\": -0.03431491600631659, \"score\": -0.817636479504067}, \"volatility_60d\": {\"raw\": -0.5516186539700035, \"score\": 0.538632226166219}}"
+      }
+    ]
+  }
+]

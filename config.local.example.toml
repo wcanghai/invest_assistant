@@ -1,0 +1,4 @@
+# 此文件复制为 config.local.toml 后填写本机路径；该文件不会提交到 Git。
+[tdx]
+python = "D:/SoftWare/conda/envs/stock-analysis-py312/python.exe"
+plugin_path = "D:/software/tdx/PYPlugins/user"

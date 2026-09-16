@@ -1,0 +1,375 @@
+[
+  {
+    "name": "recent_trade_fields",
+    "sql": "SELECT trade_date,COUNT(*) n,COUNT(shareholder_count) holders,COUNT(financing_balance_10k) margin,COUNT(financing_net_buy_10k) margin_net,COUNT(northbound_holding_shares) northbound,COUNT(total_market_cap_10k) cap,COUNT(pledge_ratio_pct) pledge,COUNT(market_popularity_rank) popularity FROM stock_trade_daily WHERE trade_date>='2026-08-24' GROUP BY trade_date ORDER BY trade_date",
+    "rows": [
+      {
+        "trade_date": "2026-08-24",
+        "n": 5549,
+        "holders": 0,
+        "margin": 3857,
+        "margin_net": 3851,
+        "northbound": 0,
+        "cap": 5549,
+        "pledge": 0,
+        "popularity": 5549
+      },
+      {
+        "trade_date": "2026-08-25",
+        "n": 5550,
+        "holders": 0,
+        "margin": 3857,
+        "margin_net": 3852,
+        "northbound": 0,
+        "cap": 5550,
+        "pledge": 0,
+        "popularity": 5550
+      },
+      {
+        "trade_date": "2026-08-26",
+        "n": 5550,
+        "holders": 1,
+        "margin": 3857,
+        "margin_net": 3855,
+        "northbound": 0,
+        "cap": 5550,
+        "pledge": 0,
+        "popularity": 5550
+      },
+      {
+        "trade_date": "2026-08-27",
+        "n": 5550,
+        "holders": 1,
+        "margin": 3857,
+        "margin_net": 3856,
+        "northbound": 0,
+        "cap": 5550,
+        "pledge": 0,
+        "popularity": 5550
+      },
+      {
+        "trade_date": "2026-08-28",
+        "n": 5551,
+        "holders": 0,
+        "margin": 1809,
+        "margin_net": 1809,
+        "northbound": 0,
+        "cap": 5551,
+        "pledge": 2200,
+        "popularity": 5551
+      },
+      {
+        "trade_date": "2026-08-29",
+        "n": 5551,
+        "holders": 0,
+        "margin": 0,
+        "margin_net": 0,
+        "northbound": 0,
+        "cap": 0,
+        "pledge": 0,
+        "popularity": 5551
+      },
+      {
+        "trade_date": "2026-08-30",
+        "n": 5528,
+        "holders": 1,
+        "margin": 0,
+        "margin_net": 0,
+        "northbound": 0,
+        "cap": 0,
+        "pledge": 0,
+        "popularity": 5528
+      },
+      {
+        "trade_date": "2026-08-31",
+        "n": 5551,
+        "holders": 127,
+        "margin": 3858,
+        "margin_net": 3857,
+        "northbound": 0,
+        "cap": 5551,
+        "pledge": 0,
+        "popularity": 5551
+      },
+      {
+        "trade_date": "2026-09-01",
+        "n": 5551,
+        "holders": 1,
+        "margin": 3858,
+        "margin_net": 3858,
+        "northbound": 0,
+        "cap": 5551,
+        "pledge": 0,
+        "popularity": 5551
+      },
+      {
+        "trade_date": "2026-09-02",
+        "n": 5551,
+        "holders": 0,
+        "margin": 0,
+        "margin_net": 0,
+        "northbound": 0,
+        "cap": 5551,
+        "pledge": 0,
+        "popularity": 5551
+      },
+      {
+        "trade_date": "2026-09-03",
+        "n": 48,
+        "holders": 0,
+        "margin": 0,
+        "margin_net": 0,
+        "northbound": 0,
+        "cap": 0,
+        "pledge": 0,
+        "popularity": 0
+      },
+      {
+        "trade_date": "2026-09-04",
+        "n": 5566,
+        "holders": 0,
+        "margin": 0,
+        "margin_net": 0,
+        "northbound": 0,
+        "cap": 0,
+        "pledge": 0,
+        "popularity": 0
+      }
+    ],
+    "seconds": 5.437
+  },
+  {
+    "name": "recent_etf_fields",
+    "sql": "SELECT trade_date,COUNT(*) n,COUNT(close) closes,COUNT(unit_nav) nav,COUNT(shares_10k) shares,COUNT(size_10k) size FROM etf_daily WHERE trade_date>='2026-08-28' GROUP BY trade_date ORDER BY trade_date",
+    "rows": [
+      {
+        "trade_date": "2026-08-28",
+        "n": 1694,
+        "closes": 1647,
+        "nav": 1631,
+        "shares": 1647,
+        "size": 1647
+      },
+      {
+        "trade_date": "2026-08-31",
+        "n": 1694,
+        "closes": 1647,
+        "nav": 1627,
+        "shares": 1647,
+        "size": 1647
+      },
+      {
+        "trade_date": "2026-09-01",
+        "n": 1694,
+        "closes": 1647,
+        "nav": 1605,
+        "shares": 1645,
+        "size": 1645
+      },
+      {
+        "trade_date": "2026-09-02",
+        "n": 1698,
+        "closes": 1650,
+        "nav": 5,
+        "shares": 0,
+        "size": 0
+      },
+      {
+        "trade_date": "2026-09-03",
+        "n": 1698,
+        "closes": 1651,
+        "nav": 0,
+        "shares": 0,
+        "size": 0
+      },
+      {
+        "trade_date": "2026-09-04",
+        "n": 1718,
+        "closes": 1670,
+        "nav": 0,
+        "shares": 0,
+        "size": 0
+      }
+    ],
+    "seconds": 0.406
+  },
+  {
+    "name": "stale_financial",
+    "sql": "SELECT stock_code,MAX(report_date) latest_report FROM stock_financial_report GROUP BY stock_code HAVING latest_report<'2026-06-30'",
+    "rows": [
+      {
+        "stock_code": "002731.SZ",
+        "latest_report": "2025-09-30"
+      }
+    ],
+    "seconds": 0.297
+  },
+  {
+    "name": "missing_bar_tradable",
+    "sql": "SELECT c.stock_code,c.stock_name,c.is_tradable,m.list_date FROM stock_current c JOIN stock_master m USING(stock_code) WHERE NOT EXISTS (SELECT 1 FROM stock_daily_bar b WHERE b.stock_code=c.stock_code AND b.trade_date='2026-09-04')",
+    "rows": [
+      {
+        "stock_code": "301689.SZ",
+        "stock_name": "电科思仪",
+        "is_tradable": 0,
+        "list_date": null
+      },
+      {
+        "stock_code": "301699.SZ",
+        "stock_name": "洛轴股份",
+        "is_tradable": 0,
+        "list_date": null
+      },
+      {
+        "stock_code": "603448.SH",
+        "stock_name": "天博智能",
+        "is_tradable": 1,
+        "list_date": null
+      },
+      {
+        "stock_code": "688801.SH",
+        "stock_name": "燧原科技",
+        "is_tradable": 1,
+        "list_date": null
+      },
+      {
+        "stock_code": "688837.SH",
+        "stock_name": "信诺维",
+        "is_tradable": 1,
+        "list_date": null
+      },
+      {
+        "stock_code": "920269.BJ",
+        "stock_name": "杰锋动力",
+        "is_tradable": 0,
+        "list_date": null
+      },
+      {
+        "stock_code": "920268.BJ",
+        "stock_name": "百迈科",
+        "is_tradable": 0,
+        "list_date": null
+      },
+      {
+        "stock_code": "601091.SH",
+        "stock_name": "沈鼓集团",
+        "is_tradable": 1,
+        "list_date": null
+      },
+      {
+        "stock_code": "920298.BJ",
+        "stock_name": "腾信精密",
+        "is_tradable": 0,
+        "list_date": null
+      },
+      {
+        "stock_code": "301686.SZ",
+        "stock_name": "中塑股份",
+        "is_tradable": 0,
+        "list_date": null
+      }
+    ],
+    "seconds": 1.735
+  },
+  {
+    "name": "financial_same_date",
+    "sql": "SELECT COUNT(*) n,SUM(announce_date=report_date) same_date,SUM(announce_date=report_date AND report_date>='2010-01-01') same_date_since_2010 FROM stock_financial_report",
+    "rows": [
+      {
+        "n": 265795,
+        "same_date": 3512,
+        "same_date_since_2010": 0
+      }
+    ],
+    "seconds": 0.36
+  },
+  {
+    "name": "financial_version_counts",
+    "sql": "SELECT versions,COUNT(*) report_groups FROM (SELECT COUNT(*) versions FROM stock_financial_report GROUP BY stock_code,report_date) GROUP BY versions ORDER BY versions",
+    "rows": [
+      {
+        "versions": 1,
+        "report_groups": 265795
+      }
+    ],
+    "seconds": 0.781
+  },
+  {
+    "name": "etf_market_tail",
+    "sql": "SELECT * FROM etf_market_daily ORDER BY trade_date DESC LIMIT 2",
+    "rows": [
+      {
+        "trade_date": "2026-08-28",
+        "total_shares_100m": 31638.8,
+        "net_subscription_shares_100m": -20.69,
+        "total_size_100m": 49661.08,
+        "net_subscription_size_100m": -63.2,
+        "raw_metrics_json": "{\"SC08\":[31638.8,-20.69],\"SC38\":[49661.08,-63.2]}",
+        "updated_at": "2026-09-06T22:36:43"
+      },
+      {
+        "trade_date": "2026-08-27",
+        "total_shares_100m": 31659.49,
+        "net_subscription_shares_100m": -82.71,
+        "total_size_100m": 49934.02,
+        "net_subscription_size_100m": -68.67,
+        "raw_metrics_json": "{\"SC08\":[31659.49,-82.71],\"SC38\":[49934.02,-68.67]}",
+        "updated_at": "2026-09-06T22:36:43"
+      }
+    ],
+    "seconds": 0.0
+  },
+  {
+    "name": "first_seen_and_history",
+    "sql": "SELECT MIN(first_seen_date) first_seen,COUNT(*) n FROM stock_master",
+    "rows": [
+      {
+        "first_seen": "2026-08-28",
+        "n": 5566
+      }
+    ],
+    "seconds": 0.015
+  },
+  {
+    "name": "trade_partial_raw_sample",
+    "sql": "SELECT stock_code,trade_date,raw_metrics_json FROM stock_trade_daily WHERE stock_code='600519.SH' AND trade_date>='2026-08-28' ORDER BY trade_date",
+    "rows": [
+      {
+        "stock_code": "600519.SH",
+        "trade_date": "2026-08-28",
+        "raw_metrics_json": "{\"GP03\":[\"1735104.63\",\"110219.00\"],\"GP11\":[\"16660.22\",\"20497.56\"],\"GP12\":[\"3000.00\",\"1700.00\"],\"GP13\":[\"-3837.34\",\"1300.00\"],\"GP16\":[\"162185584.00\",\"0.00\"],\"GP19\":[\"50.86\",\"0.00\"],\"GP20\":[\"0.04\",\"0.00\"],\"GP21\":[\"4.01\",\"0.00\"],\"GP25\":[\"81.00\",\"13.00\"],\"GP27\":[\"52.00\",\"1.00\"],\"GP44\":[\"3.82\",\"0.00\"],\"GP47\":[\"-13327.71\",\"0.00\"],\"GP48\":[\"2.00\",\"0.00\"],\"GP50\":[\"1044.09\",\"168.66\"]}"
+      },
+      {
+        "stock_code": "600519.SH",
+        "trade_date": "2026-08-29",
+        "raw_metrics_json": "{\"GP27\":[\"39.00\",\"1.00\"]}"
+      },
+      {
+        "stock_code": "600519.SH",
+        "trade_date": "2026-08-30",
+        "raw_metrics_json": "{\"GP27\":[\"52.00\",\"1.00\"]}"
+      },
+      {
+        "stock_code": "600519.SH",
+        "trade_date": "2026-08-31",
+        "raw_metrics_json": "{\"GP03\":[\"1731081.25\",\"111319.00\"],\"GP04\":[\"1299.52\",\"9096.64\"],\"GP11\":[\"23569.64\",\"27593.04\"],\"GP12\":[\"4400.00\",\"3300.00\"],\"GP13\":[\"-4023.41\",\"1100.00\"],\"GP16\":[\"162450608.00\",\"0.00\"],\"GP21\":[\"4.00\",\"0.00\"],\"GP25\":[\"270.00\",\"14.00\"],\"GP27\":[\"50.00\",\"1.00\"],\"GP36\":[\"800.00\",\"0.00\"],\"GP47\":[\"529.62\",\"0.00\"],\"GP48\":[\"1.90\",\"0.00\"],\"GP50\":[\"3504.57\",\"181.93\"]}"
+      },
+      {
+        "stock_code": "600519.SH",
+        "trade_date": "2026-09-01",
+        "raw_metrics_json": "{\"GP03\":[\"1739078.50\",\"108419.00\"],\"GP11\":[\"40924.65\",\"32927.38\"],\"GP12\":[\"2600.00\",\"5500.00\"],\"GP13\":[\"7997.27\",\"-2900.00\"],\"GP16\":[\"162455600.00\",\"0.00\"],\"GP21\":[\"4.00\",\"0.00\"],\"GP25\":[\"423.00\",\"11.00\"],\"GP27\":[\"46.00\",\"1.00\"],\"GP36\":[\"100.00\",\"0.00\"],\"GP44\":[\"3.86\",\"0.00\"],\"GP47\":[\"-30158.41\",\"0.00\"],\"GP48\":[\"2.20\",\"0.00\"],\"GP50\":[\"5477.85\",\"142.95\"]}"
+      },
+      {
+        "stock_code": "600519.SH",
+        "trade_date": "2026-09-02",
+        "raw_metrics_json": "{\"GP16\":[\"162198080.00\",\"0.00\"],\"GP21\":[\"4.01\",\"0.00\"],\"GP25\":[\"281.00\",\"1.00\"],\"GP27\":[\"45.00\",\"1.00\"],\"GP36\":[\"1300.00\",\"0.00\"]}"
+      },
+      {
+        "stock_code": "600519.SH",
+        "trade_date": "2026-09-04",
+        "raw_metrics_json": "{\"GP25\":[\"179.43\",\"0.00\"],\"GP36\":[\"0.00\",\"0.00\"],\"GP50\":[\"2325.20\",\"0.00\"]}"
+      }
+    ],
+    "seconds": 0.0
+  }
+]

@@ -1,0 +1,8 @@
+{
+  "version": "1.0.0",
+  "price_mode": "exploratory",
+  "universe_mode": "survivors",
+  "target_volatility": null,
+  "max_asset_weight": null,
+  "class_caps": {}
+}

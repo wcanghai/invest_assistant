@@ -24,8 +24,8 @@ if ($WhatIf) {
     & $PythonExe @Arguments '--dry-run'
     exit $LASTEXITCODE
 }
-# 后台执行保留原五分钟检查器预算，实际数据结果由 Python 状态和日志记录。
-$QuotedArguments = $Arguments | ForEach-Object { '"' + $_.Replace('"', '\"') + '"' }
+# Keep the launcher short; Python records the actual business outcome.
+$QuotedArguments = ($Arguments | ForEach-Object { '"' + $_.Replace('"', '\"') + '"' }) -join ' '
 $RunTag = Get-Date -Format 'yyyyMMdd_HHmmss_fff'
 Start-Process -FilePath $PythonExe -ArgumentList $QuotedArguments -WindowStyle Hidden `
     -WorkingDirectory $ProjectRoot `

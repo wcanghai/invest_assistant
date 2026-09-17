@@ -3,8 +3,8 @@
 from datetime import datetime
 from unittest.mock import Mock
 
-from daily_report import scheduler as s
-from daily_report.common import SHANGHAI
+from invest.jobs import report as s
+from invest.reporting.common import SHANGHAI
 
 
 def test_slots():
@@ -43,3 +43,20 @@ def test_backfill_retry(monkeypatch, tmp_path):
     s.run()
     state = s.json.loads(s.STATE.read_text('utf-8'))
     assert list(state['backfill'].values()) == [True]
+
+
+def test_collection_must_cover_configured_universe(monkeypatch, tmp_path):
+    # 子集成功不能冒充整批完成，名单大小应由配置决定。
+    monkeypatch.setattr(s, 'STATE', tmp_path / 'state.json')
+    monkeypatch.setattr(s, 'EXTERNAL', ('indices',))
+    monkeypatch.setattr(s, 'load_config', lambda path: {'indices': {'a': 'A', 'b': 'B'}})
+    monkeypatch.setattr(s, 'export_report', Mock(return_value={'status': 'partial'}))
+    monkeypatch.setattr(s, 'collect', Mock(return_value={'total': 1, 'failed': 0}))
+    now = datetime(2026, 9, 12, 16, tzinfo=SHANGHAI)
+    state = {}
+    slots = s.due_slots(now, state)
+    s.collect_due(now, state, slots)
+    assert not state
+    s.collect.return_value = {'total': 2, 'failed': 0}
+    s.collect_due(now, state, slots)
+    assert not s.due_slots(now, state)

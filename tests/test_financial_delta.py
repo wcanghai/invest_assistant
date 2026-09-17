@@ -7,14 +7,16 @@ from pathlib import Path
 
 import pandas as pd
 
-from security_pool import db as pool_db
-from stock_data import db
-from stock_data.fetcher import CORE_FN_FIELDS
-from stock_data.financial_delta import PROBE_FIELDS, sync_financial_delta
+from invest.storage import security_pool as pool_db
+from invest.storage import stock as db
+from invest.providers.stock import CORE_FN_FIELDS
+from invest.market.stock.financial_delta import PROBE_FIELDS
+from invest.market.stock.financial_delta import sync_financial_delta
 
 
 class FakeFinancialClient:
     def __init__(self) -> None:
+        # 初始化模拟客户端的调用记录。
         self.requests: list[tuple[tuple[str, ...], tuple[str, ...]]] = []
 
     def get_financial_data(
@@ -25,6 +27,7 @@ class FakeFinancialClient:
         end_time,
         report_type,
     ):
+        # 记录字段请求，仅给指定测试股票返回财报。
         self.requests.append((tuple(stock_list), tuple(field_list)))
         if "600001.SH" not in stock_list:
             return {}
@@ -35,6 +38,7 @@ class FakeFinancialClient:
 
 
 def _seed(db_path: Path) -> None:
+    # 创建独立的双股票测试数据库。
     connection = pool_db.connect(db_path)
     try:
         db.init_db(connection)
@@ -57,6 +61,7 @@ def _seed(db_path: Path) -> None:
 
 
 def test_financial_delta_probes_then_fetches_only_hit_stocks(tmp_path: Path) -> None:
+    # 验证仅对探测命中的股票获取详细财报。
     db_path = tmp_path / "security_pool.db"
     _seed(db_path)
     client = FakeFinancialClient()

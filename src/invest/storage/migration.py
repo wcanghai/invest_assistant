@@ -1,12 +1,14 @@
-"""将旧数据库安全拆分为市场、研究、账户和日报数据库。"""
+"""从一致性快照拆分数据库，验证成功后发布并保存可追溯清单。"""
 
 from __future__ import annotations
 
 import hashlib
-import shutil
+import json
 import sqlite3
+from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
+from uuid import uuid4
 
 from invest.core.settings import Settings
 
@@ -25,23 +27,35 @@ RESEARCH_TABLES = frozenset({
 })
 REPORT_TABLES = frozenset({"observations", "reports", "runs"})
 ETF_RESULT_TABLES = frozenset({"research_run"})
+ACCOUNT_TABLES = frozenset({"manual_account", "manual_fill", "manual_plan", "manual_event"})
 ALL_SOURCE_TABLES = MARKET_TABLES | RESEARCH_TABLES
+GROUPS = (
+    ("market", "market", MARKET_TABLES),
+    ("market", "research", RESEARCH_TABLES),
+    ("etf_results", "research", ETF_RESULT_TABLES),
+    ("reports", "reports", REPORT_TABLES),
+)
+
+
+def _quote(name: str) -> str:
+    # 引用已从 SQLite 元数据读取的标识符。
+    return '"' + name.replace('"', '""') + '"'
 
 
 def _tables(connection: sqlite3.Connection) -> set[str]:
-    # 返回用户业务表，排除 SQLite 内部表。
+    # 列出业务表，排除 SQLite 自身的内部表。
     return {row[0] for row in connection.execute(
         "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
     )}
 
 
 def _connect_readonly(path: Path) -> sqlite3.Connection:
-    # 用只读方式打开既有数据库，避免检查过程写入数据。
-    return sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True)
+    # 只读打开已有文件，拒绝隐式创建空库。
+    return sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True, timeout=30)
 
 
 def _source_paths(settings: Settings) -> dict[str, Path]:
-    # 返回当前项目中待迁移的旧数据库位置。
+    # 固定旧库清单，不能将新库误识别为迁移来源。
     return {
         "market": settings.root / "data/security_pool.db",
         "etf_results": settings.root / "data/etf_strategy.db",
@@ -49,36 +63,60 @@ def _source_paths(settings: Settings) -> dict[str, Path]:
     }
 
 
-def check_sources(settings: Settings) -> dict[str, object]:
-    # 检查旧库表集合和完整性，不修改任何文件。
-    details: dict[str, object] = {}
+def _check_integrity(connection: sqlite3.Connection) -> None:
+    # 检查全部页的结构及外键，数据和索引另由迁移比较覆盖。
+    errors = connection.execute("PRAGMA quick_check").fetchall()
+    if errors != [("ok",)]:
+        raise RuntimeError(f"SQLite quick_check 失败: {errors[:10]}")
+    violations = connection.execute("PRAGMA foreign_key_check").fetchmany(10)
+    if violations:
+        raise RuntimeError(f"SQLite 外键校验失败: {violations}")
+
+
+def _check_paths(paths: dict[str, Path], integrity: bool) -> dict[str, object]:
+    # 先核对表清单，按需检查快照完整性，始终关闭数据库连接。
     expected = {"market": ALL_SOURCE_TABLES, "etf_results": ETF_RESULT_TABLES,
                 "reports": REPORT_TABLES}
-    for name, path in _source_paths(settings).items():
-        if not path.exists():
-            raise FileNotFoundError(f"缺少迁移源数据库: {path}")
-        with _connect_readonly(path) as connection:
-            tables = _tables(connection)
-            unknown = tables - expected[name]
-            missing = expected[name] - tables
-            integrity = connection.execute("PRAGMA integrity_check").fetchone()[0]
-            if unknown or missing or integrity != "ok":
+    result = {}
+    for name, path in paths.items():
+        if not path.is_file() or not path.stat().st_size:
+            raise FileNotFoundError(f"源数据库不存在或为空: {path}")
+        with closing(_connect_readonly(path)) as connection:
+            actual = _tables(connection)
+            unknown, missing = actual - expected[name], expected[name] - actual
+            if unknown or missing:
                 raise RuntimeError(
-                    f"{name} 不符合迁移清单: unknown={sorted(unknown)}, "
-                    f"missing={sorted(missing)}, integrity={integrity}"
+                    f"{name}: unknown={sorted(unknown)}, missing={sorted(missing)}"
                 )
-            details[name] = {"path": str(path), "tables": sorted(tables),
-                             "rows": {table: connection.execute(
-                                 f'SELECT COUNT(*) FROM "{table}"').fetchone()[0]
-                                      for table in sorted(tables)}}
-    return details
+            if integrity:
+                _check_integrity(connection)
+            result[name] = {"path": str(path), "tables": sorted(actual),
+                            "integrity": "quick_check+foreign_key_check" if integrity else None}
+    return result
+
+
+def check_sources(settings: Settings) -> dict[str, object]:
+    # 只读检查旧库结构、SQLite 页和外键，不创建目录或目标库。
+    return _check_paths(_source_paths(settings), integrity=True)
 
 
 def _backup(source: Path, destination: Path) -> None:
-    # 使用 SQLite 备份 API 制作一致性数据库副本。
+    # SQLite 备份包含已提交的 WAL 内容，并显式关闭两侧句柄。
     destination.parent.mkdir(parents=True, exist_ok=True)
-    with _connect_readonly(source) as origin, sqlite3.connect(destination) as copy:
-        origin.backup(copy)
+    if destination.exists():
+        raise FileExistsError(f"备份已存在: {destination}")
+    with closing(_connect_readonly(source)) as origin:
+        with closing(sqlite3.connect(destination)) as target:
+            origin.backup(target, pages=8192)
+
+
+def _version(connection: sqlite3.Connection) -> None:
+    # 初始化当前目标库的独立版本记录。
+    connection.execute(
+        "CREATE TABLE schema_migration (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL)"
+    )
+    connection.execute("INSERT INTO schema_migration VALUES (1, ?)",
+                       (datetime.now(timezone.utc).isoformat(),))
 
 
 def _copy_tables(
@@ -87,123 +125,174 @@ def _copy_tables(
     tables: frozenset[str],
     append: bool = False,
 ) -> None:
-    # 按原始建表语句、数据和索引复制指定表，保留结构与主键。
-    if target.exists() and target.stat().st_size and not append:
+    # 用只读快照执行整表复制，原样保留结构、索引、触发器和自增上限。
+    if target.exists() and not append:
         raise FileExistsError(f"目标数据库已存在，拒绝覆盖: {target}")
     target.parent.mkdir(parents=True, exist_ok=True)
-    with _connect_readonly(source) as origin, sqlite3.connect(target) as destination:
-        destination.execute("PRAGMA foreign_keys=OFF")
-        for table in sorted(tables):
-            row = origin.execute(
-                "SELECT sql FROM sqlite_master WHERE type='table' AND name=?", (table,)
-            ).fetchone()
-            if row is None or row[0] is None:
-                raise RuntimeError(f"未找到建表语句: {table}")
-            destination.execute(row[0])
-            columns = [item[1] for item in origin.execute(f'PRAGMA table_info("{table}")')]
-            quoted = ", ".join(f'"{column}"' for column in columns)
-            marks = ", ".join("?" for _ in columns)
-            rows = origin.execute(f'SELECT {quoted} FROM "{table}"')
-            destination.executemany(f'INSERT INTO "{table}" ({quoted}) VALUES ({marks})', rows)
-        for kind in ("index", "trigger"):
-            objects = origin.execute(
-                "SELECT sql FROM sqlite_master WHERE type=? AND tbl_name=? AND sql IS NOT NULL",
-                (kind,)).fetchall()
-            for sql, in objects:
-                destination.execute(sql)
-        if not append:
-            destination.execute(
-                "CREATE TABLE schema_migration "
-                "(version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL)"
-            )
-            destination.execute(
-                "INSERT INTO schema_migration VALUES (1, ?)",
-                (datetime.now(timezone.utc).isoformat(),),
-            )
-        destination.execute("PRAGMA foreign_keys=ON")
+    with closing(sqlite3.connect(target.as_uri(), uri=True)) as destination:
+        destination.execute("ATTACH DATABASE ? AS snapshot", (source.as_uri() + "?mode=ro",))
+        with destination:
+            destination.execute("BEGIN")
+            for table in sorted(tables):
+                print(f"COPY {target.name}: {table}", flush=True)
+                row = destination.execute(
+                    "SELECT sql FROM snapshot.sqlite_master WHERE type='table' AND name=?",
+                    (table,),
+                ).fetchone()
+                if row is None:
+                    raise RuntimeError(f"缺少源表: {table}")
+                destination.execute(row[0])
+                destination.execute(
+                    f"INSERT INTO main.{_quote(table)} SELECT * FROM snapshot.{_quote(table)}"
+                )
+                if "AUTOINCREMENT" in row[0].upper():
+                    sequence = destination.execute(
+                        "SELECT seq FROM snapshot.sqlite_sequence WHERE name=?", (table,)
+                    ).fetchone()
+                    if sequence is not None:
+                        destination.execute("DELETE FROM main.sqlite_sequence WHERE name=?",
+                                            (table,))
+                        destination.execute("INSERT INTO main.sqlite_sequence VALUES (?,?)",
+                                            (table, sequence[0]))
+            for table in sorted(tables):
+                objects = destination.execute(
+                    "SELECT sql FROM snapshot.sqlite_master WHERE type IN ('index','trigger') "
+                    "AND tbl_name=? AND sql IS NOT NULL ORDER BY type,name", (table,)
+                ).fetchall()
+                for sql, in objects:
+                    destination.execute(sql)
+            if not append:
+                _version(destination)
 
 
 def _create_accounts(path: Path) -> None:
-    # 创建独立账户账本及其迁移版本记录。
-    if path.exists() and path.stat().st_size:
-        raise FileExistsError(f"目标数据库已存在，拒绝覆盖: {path}")
+    # 初始化空账户库，绝不覆盖已有账户。
+    if path.exists():
+        raise FileExistsError(f"目标数据库已存在: {path}")
     path.parent.mkdir(parents=True, exist_ok=True)
-    schema = """
-    CREATE TABLE manual_account (
-      account_id TEXT PRIMARY KEY, as_of TEXT NOT NULL, cash REAL NOT NULL,
-      holdings_json TEXT NOT NULL, initial_json TEXT NOT NULL);
-    CREATE TABLE manual_fill (
-      account_id TEXT NOT NULL, fill_id TEXT NOT NULL, payload_json TEXT NOT NULL,
-      PRIMARY KEY(account_id, fill_id));
-    CREATE TABLE manual_plan (plan_id TEXT PRIMARY KEY, payload_json TEXT NOT NULL);
-    CREATE TABLE manual_event (
-      account_id TEXT NOT NULL, event_id TEXT NOT NULL, payload_json TEXT NOT NULL,
-      PRIMARY KEY(account_id, event_id));
-    CREATE TABLE schema_migration (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL);
-    """
-    with sqlite3.connect(path) as connection:
-        connection.executescript(schema)
-        connection.execute("INSERT INTO schema_migration VALUES (1, ?)",
-                           (datetime.now(timezone.utc).isoformat(),))
+    with closing(sqlite3.connect(path)) as connection:
+        with connection:
+            connection.executescript("""
+            CREATE TABLE manual_account (
+              account_id TEXT PRIMARY KEY, as_of TEXT NOT NULL, cash REAL NOT NULL,
+              holdings_json TEXT NOT NULL, initial_json TEXT NOT NULL);
+            CREATE TABLE manual_fill (
+              account_id TEXT NOT NULL, fill_id TEXT NOT NULL, payload_json TEXT NOT NULL,
+              PRIMARY KEY(account_id,fill_id));
+            CREATE TABLE manual_plan (plan_id TEXT PRIMARY KEY, payload_json TEXT NOT NULL);
+            CREATE TABLE manual_event (
+              account_id TEXT NOT NULL, event_id TEXT NOT NULL, payload_json TEXT NOT NULL,
+              PRIMARY KEY(account_id,event_id));
+            """)
+            _version(connection)
+
+
+def _fingerprint(connection: sqlite3.Connection, table: str) -> dict[str, object]:
+    # 按主键稳定排序并计算全部行摘要，支持无 rowid 表。
+    columns = connection.execute(f"PRAGMA table_info({_quote(table)})").fetchall()
+    keys = [row[1] for row in sorted(columns, key=lambda row: row[5]) if row[5]]
+    keys = keys or [row[1] for row in columns]
+    order = ','.join(_quote(key) for key in keys)
+    digest, count = hashlib.sha256(), 0
+    cursor = connection.execute(f"SELECT * FROM {_quote(table)} ORDER BY {order}")
+    for row in cursor:
+        digest.update(repr(tuple(row)).encode("utf-8"))
+        digest.update(b"\n")
+        count += 1
+    schema = connection.execute(
+        "SELECT type,name,sql FROM sqlite_master WHERE tbl_name=? AND sql IS NOT NULL "
+        "ORDER BY type,name", (table,)
+    ).fetchall()
+    sequence = None
+    if connection.execute(
+        "SELECT 1 FROM sqlite_master WHERE name='sqlite_sequence'"
+    ).fetchone():
+        sequence = connection.execute(
+            "SELECT seq FROM sqlite_sequence WHERE name=?", (table,)
+        ).fetchone()
+    return {"rows": count, "sha256": digest.hexdigest(), "schema": schema,
+            "sequence": sequence}
+
+
+def _verify_paths(sources: dict[str, Path], targets: dict[str, Path]) -> dict[str, object]:
+    # 独立核对全部行、DDL、自增序列和外键，确保分库与固定快照一致。
+    expected = {"market": MARKET_TABLES, "research": RESEARCH_TABLES | ETF_RESULT_TABLES,
+                "reports": REPORT_TABLES, "accounts": ACCOUNT_TABLES}
+    for name, path in targets.items():
+        with closing(_connect_readonly(path)) as connection:
+            if _tables(connection) != expected[name] | {"schema_migration"}:
+                raise RuntimeError(f"目标表清单不符: {name}")
+            _check_integrity(connection)
+            versions = connection.execute("SELECT version FROM schema_migration").fetchall()
+            if versions != [(1,)]:
+                raise RuntimeError(f"目标版本不符: {name}")
+    checked = {}
+    for source, target, tables in GROUPS:
+        with closing(_connect_readonly(sources[source])) as old:
+            with closing(_connect_readonly(targets[target])) as new:
+                for table in sorted(tables):
+                    print(f"VERIFY {target}: {table}", flush=True)
+                    before, after = _fingerprint(old, table), _fingerprint(new, table)
+                    if before != after:
+                        raise RuntimeError(f"数据或结构核对失败: {target}.{table}")
+                    checked[f"{target}.{table}"] = before
+    with closing(_connect_readonly(targets["accounts"])) as connection:
+        for table in ACCOUNT_TABLES:
+            if connection.execute(f"SELECT 1 FROM {_quote(table)} LIMIT 1").fetchone():
+                raise RuntimeError("本次迁移预期为空账户库，发现账户记录")
+    return {"status": "ok", "tables": checked}
+
+
+def _manifest_path(settings: Settings) -> Path:
+    # 清单与目标目录并列，只有全部验证发布成功后才写入。
+    return settings.path(settings.config["paths"]["database_dir"]) / "migration_manifest.json"
 
 
 def migrate(settings: Settings) -> dict[str, object]:
-    # 备份旧库后创建四个新库；任何预存在目标都会阻止执行。
-    source_status = check_sources(settings)
+    # 先快照，再在隔离目录构建和验证，最后发布四库与完成清单。
     destinations = settings.databases
-    existing = [path for path in destinations.values() if path.exists()]
-    if existing:
-        raise FileExistsError(f"目标数据库已存在，拒绝覆盖: {existing}")
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    backup_root = settings.path(settings.config["paths"]["backup_dir"]) / f"pre_migration_{stamp}"
-    for name, source in _source_paths(settings).items():
-        _backup(source, backup_root / f"{name}.db")
-    _copy_tables(_source_paths(settings)["market"], destinations["market"], MARKET_TABLES)
-    _copy_tables(_source_paths(settings)["market"], destinations["research"], RESEARCH_TABLES)
-    _copy_tables(
-        _source_paths(settings)["etf_results"],
-        destinations["research"],
-        ETF_RESULT_TABLES,
-        append=True,
-    )
-    _copy_tables(_source_paths(settings)["reports"], destinations["reports"], REPORT_TABLES)
-    _create_accounts(destinations["accounts"])
-    return {"backup": str(backup_root), "sources": source_status,
-            "destinations": {name: str(path) for name, path in destinations.items()}}
-
-
-def _digest(connection: sqlite3.Connection, table: str) -> str:
-    # 基于插入顺序计算表数据摘要，用于迁移后的逐行一致性核对。
-    digest = hashlib.sha256()
-    for row in connection.execute(f'SELECT * FROM "{table}" ORDER BY rowid'):
-        digest.update(repr(tuple(row)).encode("utf-8"))
-        digest.update(b"\n")
-    return digest.hexdigest()
+    existing = [str(path) for path in destinations.values() if path.exists()]
+    if existing or _manifest_path(settings).exists():
+        raise FileExistsError(f"拒绝覆盖已有目标或迁移清单: {existing}")
+    sources = _source_paths(settings)
+    _check_paths(sources, integrity=False)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + '_' + uuid4().hex[:8]
+    folder = settings.path(settings.config["paths"]["backup_dir"]) / f"pre_migration_{stamp}"
+    snapshots = {key: folder / f"{key}.db" for key in sources}
+    for name, source in sources.items():
+        print(f"BACKUP {name}: {source}", flush=True)
+        _backup(source, snapshots[name])
+    _check_paths(snapshots, integrity=True)
+    staged = {name: folder / "staging" / path.name for name, path in destinations.items()}
+    for source, target, tables in GROUPS:
+        _copy_tables(snapshots[source], staged[target], tables, append=staged[target].exists())
+    _create_accounts(staged["accounts"])
+    result = _verify_paths(snapshots, staged)
+    manifest = {"version": 1, "created_at": datetime.now(timezone.utc).isoformat(),
+                "sources": {name: str(path) for name, path in snapshots.items()},
+                "targets": {name: str(path) for name, path in destinations.items()},
+                "verification": result}
+    for name, target in destinations.items():
+        if target.exists():
+            raise FileExistsError(f"发布前发现目标已被其他进程创建: {target}")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        staged[name].rename(target)
+    manifest_path = _manifest_path(settings)
+    temporary = manifest_path.with_suffix('.tmp')
+    temporary.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+    temporary.replace(manifest_path)
+    return {"status": "ok", "backup": str(folder), "manifest": str(manifest_path),
+            "verified_tables": len(result["tables"])}
 
 
 def verify(settings: Settings) -> dict[str, object]:
-    # 核对新旧表行数、数据摘要和 SQLite 完整性。
-    check_sources(settings)
-    pairs = (
-        (_source_paths(settings)["market"], settings.databases["market"], MARKET_TABLES),
-        (_source_paths(settings)["market"], settings.databases["research"], RESEARCH_TABLES),
-        (_source_paths(settings)["etf_results"], settings.databases["research"], ETF_RESULT_TABLES),
-        (_source_paths(settings)["reports"], settings.databases["reports"], REPORT_TABLES),
-    )
-    checked: dict[str, int] = {}
-    for source, target, tables in pairs:
-        if not target.exists():
-            raise FileNotFoundError(f"缺少迁移目标数据库: {target}")
-        with _connect_readonly(source) as old, _connect_readonly(target) as new:
-            if new.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
-                raise RuntimeError(f"目标数据库损坏: {target}")
-            for table in tables:
-                old_count = old.execute(f'SELECT COUNT(*) FROM "{table}"').fetchone()[0]
-                new_count = new.execute(f'SELECT COUNT(*) FROM "{table}"').fetchone()[0]
-                if old_count != new_count or _digest(old, table) != _digest(new, table):
-                    raise RuntimeError(f"迁移核对失败: {table}")
-                checked[table] = old_count
-    with _connect_readonly(settings.databases["accounts"]) as accounts:
-        if accounts.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
-            raise RuntimeError("账户数据库完整性检查失败")
-    return {"status": "ok", "tables": checked}
+    # 核对固定备份与已发布数据库，不重复扫描持续变化的旧库。
+    targets = settings.databases
+    for name, path in targets.items():
+        if not path.is_file() or not path.stat().st_size:
+            raise FileNotFoundError(f"目标库缺失或为空: {name}: {path}")
+    manifest = json.loads(_manifest_path(settings).read_text(encoding="utf-8"))
+    if manifest["targets"] != {name: str(path) for name, path in targets.items()}:
+        raise RuntimeError("配置目标与迁移清单不符")
+    sources = {name: Path(path) for name, path in manifest["sources"].items()}
+    return _verify_paths(sources, targets)

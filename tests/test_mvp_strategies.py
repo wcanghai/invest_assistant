@@ -5,7 +5,8 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from factor_strategy.mvp import build_equal_weight_target, score_strategy
+from invest.research.stocks.mvp import build_equal_weight_target
+from invest.research.stocks.mvp import score_strategy
 
 
 def _sample_data() -> dict:

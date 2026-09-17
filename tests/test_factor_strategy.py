@@ -8,13 +8,15 @@ import sqlite3
 import numpy as np
 import pandas as pd
 
-from factor_strategy import db
-from factor_strategy.config import load_config
-from factor_strategy.data import build_financial_features, load_factor_data
-from factor_strategy.portfolio import build_portfolio
-from factor_strategy.preprocess import rank_normalize, winsorize_mad
-from factor_strategy.scoring import calculate_scores
-from stock_data import db as stock_db
+from invest.storage import factor as db
+from invest.research.stocks.config import load_config
+from invest.research.stocks.data import build_financial_features
+from invest.research.stocks.data import load_factor_data
+from invest.research.stocks.portfolio import build_portfolio
+from invest.research.stocks.preprocess import rank_normalize
+from invest.research.stocks.preprocess import winsorize_mad
+from invest.research.stocks.scoring import calculate_scores
+from invest.storage import stock as stock_db
 
 
 def _financial_row(

@@ -7,14 +7,16 @@ from pathlib import Path
 
 import pandas as pd
 
-from security_pool.etf_data import load_etf_data
+from invest.market.security_pool.etf_data import load_etf_data
 
 
 class FakeEtfClient:
     def __init__(self) -> None:
+        # 初始化模拟客户端的调用记录。
         self.market_starts: list[str] = []
 
     def get_stock_list(self, market=None, list_type: int = 0):
+        # 返回测试用 ETF 名单与交易制度分类。
         rows = {
             "31": [
                 {"Code": "510300.SH", "Name": "沪深300ETF"},
@@ -25,6 +27,7 @@ class FakeEtfClient:
         return rows if list_type == 1 else [row["Code"] for row in rows]
 
     def get_stock_info(self, stock_code: str, field_list=None):
+        # 返回测试用 ETF 主数据。
         return {
             "ErrorId": "0",
             "Name": "沪深300ETF" if stock_code == "510300.SH" else "纳指ETF",
@@ -38,6 +41,7 @@ class FakeEtfClient:
         }
 
     def get_market_data(self, fields, codes, period, start, end, count, fq, fill):
+        # 返回固定行情并记录请求起始日期。
         self.market_starts.append(start)
         index = pd.to_datetime(["2026-09-03", "2026-09-04"])
         values = {
@@ -51,6 +55,7 @@ class FakeEtfClient:
         }
 
     def get_gpjy_value(self, codes, fields, start, end):
+        # 返回固定 ETF 指标以验证数据合并。
         return {
             code: {
                 "GP47": [{"Date": "20260904", "Value": ["12.5"]}],
@@ -61,6 +66,7 @@ class FakeEtfClient:
         }
 
     def get_scjy_value(self, fields, start, end):
+        # 返回固定市场汇总指标。
         return {
             "SC08": [{"Date": "20260904", "Value": ["3000", "20"]}],
             "SC38": [{"Date": "20260904", "Value": ["5000", "30"]}],
@@ -68,6 +74,7 @@ class FakeEtfClient:
 
 
 def test_load_etf_data(tmp_path: Path) -> None:
+    # 验证 ETF 主数据、日线和增量续取行为。
     db_path = tmp_path / "etf.db"
     client = FakeEtfClient()
     result = load_etf_data(

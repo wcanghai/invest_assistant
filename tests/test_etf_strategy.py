@@ -7,22 +7,29 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from etf_strategy.backtest import backtest, metrics
-from etf_strategy.config import load_config
-from etf_strategy.data import Dataset
-from etf_strategy.collect import collect
-from etf_strategy.manual import (
-    import_account_events, import_fills, import_snapshot, reconcile, trade_plan,
-)
-from etf_strategy.storage import import_records, migrate
-from etf_strategy.strategies import covariance, equal_risk, target
+from invest.research.etf.backtest import backtest
+from invest.research.etf.backtest import metrics
+from invest.research.etf.config import load_config
+from invest.research.etf.data import Dataset
+from invest.market.etf_collect import collect
+from invest.accounts.manual import import_account_events
+from invest.accounts.manual import import_fills
+from invest.accounts.manual import import_snapshot
+from invest.accounts.manual import reconcile
+from invest.accounts.manual import trade_plan
+from invest.storage.etf import import_records
+from invest.storage.etf import migrate
+from invest.research.etf.strategies import covariance
+from invest.research.etf.strategies import equal_risk
+from invest.research.etf.strategies import target
 
 
 @pytest.fixture
 def market(tmp_path):
     # Build independent known-price assets across four sleeves and three pure styles.
     path = tmp_path / "source.db"
-    schema = __import__("pathlib").Path("security_pool/schema.sql").read_text(encoding="utf-8")
+    schema_path = __import__("pathlib").Path("src/invest/storage/security_pool.sql")
+    schema = schema_path.read_text(encoding="utf-8")
     with sqlite3.connect(path) as conn:
         conn.executescript(schema)
     migrate(path)
@@ -391,7 +398,7 @@ def test_future_prices_do_not_change_past_signal(market):
 
 def test_report_phases_cover_and_reconcile_every_session(market):
     # Reporting phases neither omit nor double-count the boundary-day returns and costs.
-    from etf_strategy.ten_year import phase_ledger
+    from invest.research.etf.ten_year import phase_ledger
 
     path, dates = market
     data = Dataset(path, load_config())
@@ -413,7 +420,8 @@ def test_report_phases_cover_and_reconcile_every_session(market):
 
 def test_unqualified_report_does_not_claim_strategy_returns(market, tmp_path):
     # Inactive factor policy reports no performance instead of marketing the flat cash ledger.
-    from etf_strategy.ten_year import evaluation, phase_ledger
+    from invest.research.etf.ten_year import evaluation
+    from invest.research.etf.ten_year import phase_ledger
 
     path, dates = market
     with sqlite3.connect(path) as conn:

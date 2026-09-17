@@ -4,21 +4,32 @@ import json
 import sqlite3
 import threading
 from concurrent.futures import ThreadPoolExecutor
-from datetime import date, timedelta
+from datetime import date
+from datetime import timedelta
 from urllib.error import HTTPError
-from urllib.request import Request, urlopen
+from urllib.request import Request
+from urllib.request import urlopen
 
 import pytest
 
-from daily_report.local import percentile, summarize
-from daily_report.sources import parse_crypto, parse_future, parse_index, parse_us
-from daily_report.sources import collection_lock, parse_sina_index
-from daily_report.common import CATEGORIES, ROOT
-from daily_report.service import generate
-from daily_report.storage import (
-    connect, get_report, latest_observations, list_reports, save_observation, save_report,
-)
-from daily_report.web import ReportServer
+from invest.reporting.local import percentile
+from invest.reporting.local import summarize
+from invest.providers.web import parse_crypto
+from invest.providers.web import parse_future
+from invest.providers.web import parse_index
+from invest.providers.web import parse_us
+from invest.providers.web import collection_lock
+from invest.providers.web import parse_sina_index
+from invest.reporting.common import CATEGORIES
+from invest.reporting.common import ROOT
+from invest.reporting.service import generate
+from invest.storage.reports import connect
+from invest.storage.reports import get_report
+from invest.storage.reports import latest_observations
+from invest.storage.reports import list_reports
+from invest.storage.reports import save_observation
+from invest.storage.reports import save_report
+from invest.reporting.web import ReportServer
 
 
 def test_index_uses_precision_and_filters_other_symbols():
@@ -215,7 +226,8 @@ def test_generate_weekend_with_readonly_main_db_and_no_future_data(tmp_path):
     # 周末日报使用最近交易日，历史补报不读未来日线或当天之后网页记录。
     source = tmp_path / "source.db"
     conn = sqlite3.connect(source)
-    for path in (ROOT / "security_pool/schema.sql", ROOT / "stock_data/schema.sql"):
+    schemas = ROOT / "src/invest/storage"
+    for path in (schemas / "security_pool.sql", schemas / "stock.sql"):
         conn.executescript(path.read_text(encoding="utf-8"))
     conn.execute(
         "INSERT INTO stock_master(stock_code,exchange,first_seen_date,created_at,updated_at) "

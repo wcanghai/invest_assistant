@@ -8,14 +8,16 @@ version = "0.1.0"
 description = "本地量化研究、市场数据与投资日报平台"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-  "numpy>=2.2,<3",
-  "pandas>=2.2,<4",
-  "matplotlib>=3.9,<4",
-  "playwright==1.62.0",
+  "numpy==2.5.3",
+  "pandas==3.0.5",
 ]
 
 [project.optional-dependencies]
+collection = []
+research = ["matplotlib==3.11.2"]
+reporting = ["playwright==1.62.0"]
 dev = ["pytest==9.1.1"]
+all = ["matplotlib==3.11.2", "playwright==1.62.0"]
 
 [project.scripts]
 invest = "invest.cli:main"
@@ -25,3 +27,7 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"invest.storage" = ["*.sql"]
+"invest.reporting" = ["static/*"]

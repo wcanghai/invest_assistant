@@ -81,7 +81,7 @@ function Invoke-PythonStep {
 function Test-TdxTradingDay {
     param([string]$DateValue)
 
-    $calendarOutput = & python -m stock_data.daily_helper `
+    $calendarOutput = & python -m invest market helper `
         is-trading-day --date $DateValue
     $calendarOutput | ForEach-Object { Write-Host $_ }
     if ($LASTEXITCODE -ne 0) {
@@ -93,7 +93,7 @@ function Test-TdxTradingDay {
 function Get-ScopeCodes {
     param([string]$ScopeName)
 
-    $codeText = & python -m stock_data.daily_helper `
+    $codeText = & python -m invest market helper `
         scope --db $DatabasePath --scope $ScopeName
     if ($LASTEXITCODE -ne 0) {
         throw 'Failed to read stock scope from SQLite.'
@@ -127,8 +127,8 @@ try {
     try {
         $otherTasks = Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction Stop |
             Where-Object {
-                $_.CommandLine -like '*stock_data.main*' -or
-                $_.CommandLine -like '*security_pool.main*'
+                $_.CommandLine -like '*invest market stock*' -or
+                $_.CommandLine -like '*invest market pool*'
             }
     }
     catch {

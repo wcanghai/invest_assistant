@@ -4,6 +4,8 @@
 __pycache__/
 *.py[cod]
 *.egg-info/
+build/
+dist/
 .pytest_cache/
 .tmp/
 .pytest_tmp_*/
@@ -19,6 +21,15 @@ data/*.db-*
 data/*.lock
 data/pytest_*/
 data/etf_three_momentum/
+data/**/*.db
+data/**/*.db-*
+data/**/*.lock
+data/report_*.png
+data/report_probe/
+data/scheduler_test_*/
+data/*checkpoint*.txt
+data/report_schedule.json
+data/databases/migration_manifest.json
 backups/
 logs/
 reports/

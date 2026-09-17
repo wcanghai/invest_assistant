@@ -101,7 +101,7 @@ function Invoke-PythonStep {
 }
 
 function Get-AllAStockCodes {
-    $codeText = & python -m stock_data.daily_helper `
+    $codeText = & python -m invest market helper `
         scope --db $DatabasePath --scope AllA
     if ($LASTEXITCODE -ne 0) {
         throw 'Failed to read all A-share stock codes from SQLite.'
@@ -203,8 +203,8 @@ try {
 
     $otherTasks = Get-CimInstance Win32_Process -Filter "Name='python.exe'" |
         Where-Object {
-            $_.CommandLine -like '*stock_data.main*' -or
-            $_.CommandLine -like '*security_pool.main*'
+            $_.CommandLine -like '*invest market stock*' -or
+            $_.CommandLine -like '*invest market pool*'
         }
     if ($otherTasks) {
         $processIds = ($otherTasks.ProcessId -join ', ')

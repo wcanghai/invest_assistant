@@ -7,7 +7,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from factor_strategy.etf_rotation import backtest, choose_target, make_scores, regression
+from invest.research.etf.three_momentum import backtest
+from invest.research.etf.three_momentum import choose_target
+from invest.research.etf.three_momentum import make_scores
+from invest.research.etf.three_momentum import regression
 
 
 class RotationTests(unittest.TestCase):

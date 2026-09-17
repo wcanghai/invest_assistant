@@ -1,135 +1,33 @@
 [CmdletBinding()]
 param(
-    [ValidatePattern('^\d{4}-\d{2}-\d{2}$')]
     [string]$DataDate = (Get-Date -Format 'yyyy-MM-dd'),
-
-    [ValidatePattern('^([01]\d|2[0-3]):[0-5]\d$')]
-    [string]$NotBefore = '15:30',
-
+    [string]$NotBefore,
     [string]$DatabasePath,
-
-    [string]$PythonDirectory = 'D:\SoftWare\conda\envs\stock-analysis-py312',
-
-    [string]$TdxPluginPath = 'D:\software\tdx\PYPlugins\user',
-
+    [string]$PythonDirectory,
+    [string]$TdxPluginPath,
     [switch]$WhatIf
 )
-
 $ErrorActionPreference = 'Stop'
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
-if ([string]::IsNullOrWhiteSpace($DatabasePath)) {
-    $DatabasePath = Join-Path $ProjectRoot 'data\databases\market.db'
-}
-$DatabasePath = [System.IO.Path]::GetFullPath($DatabasePath)
-$PythonExe = Join-Path $PythonDirectory 'python.exe'
-$LogDirectory = Join-Path $ProjectRoot 'logs'
-$LogPath = Join-Path $LogDirectory 'daily_sync_guard.log'
-
+$PythonExe = Join-Path $ProjectRoot '.venv-report\Scripts\python.exe'
+$PythonExe = & $PythonExe -c "from invest.core.settings import load_settings; import sys; print(load_settings().config.get('tdx', {}).get('python', sys.executable))"
+if ($LASTEXITCODE -ne 0) { throw 'Cannot resolve the configured TDX runtime.' }
+if ($PythonDirectory) { $PythonExe = Join-Path $PythonDirectory 'python.exe' }
+$env:PYTHONPATH = Join-Path $ProjectRoot 'src'
+if ($TdxPluginPath) { $env:PYTHONPATH += ';' + $TdxPluginPath }
+$LogDirectory = Join-Path $ProjectRoot 'logs\market'
 New-Item -ItemType Directory -Path $LogDirectory -Force | Out-Null
-function Write-GuardLog([string]$Message) {
-    Add-Content -LiteralPath $LogPath -Encoding utf8 `
-        -Value ('{0} {1}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Message)
+$Arguments = @('-X', 'utf8', '-m', 'invest', 'jobs', 'market', '--guard', '--date', $DataDate)
+if ($NotBefore) { $Arguments += @('--not-before', $NotBefore) }
+if ($DatabasePath) { $Arguments += @('--db', [System.IO.Path]::GetFullPath($DatabasePath)) }
+if ($WhatIf) {
+    & $PythonExe @Arguments '--dry-run'
+    exit $LASTEXITCODE
 }
-
-$today = Get-Date
-$target = [datetime]::ParseExact(
-    $DataDate,
-    'yyyy-MM-dd',
-    [System.Globalization.CultureInfo]::InvariantCulture
-)
-$cutoff = [datetime]::ParseExact(
-    "$DataDate $NotBefore",
-    'yyyy-MM-dd HH:mm',
-    [System.Globalization.CultureInfo]::InvariantCulture
-)
-if ($target.DayOfWeek -in @('Saturday', 'Sunday')) {
-    exit 0
-}
-if ($today -lt $cutoff) {
-    exit 0
-}
-if (-not (Test-Path -LiteralPath $PythonExe)) {
-    Write-GuardLog "ERROR Python was not found: $PythonExe"
-    exit 1
-}
-
-$env:PYTHONPATH = $TdxPluginPath
-$env:PYTHONIOENCODING = 'utf-8'
-Push-Location $ProjectRoot
-try {
-    if (Get-Process -Name 'TdxW' -ErrorAction SilentlyContinue) {
-        $calendarOutput = & $PythonExe -m stock_data.daily_helper `
-            is-trading-day --date $DataDate
-        if ($LASTEXITCODE -eq 0 -and $calendarOutput -notcontains 'TRADE_DAY=True') {
-            exit 0
-        }
-    }
-
-    $statusText = & $PythonExe scripts\check_daily_sync_status.py `
-        --db $DatabasePath --date $DataDate
-    $statusCode = $LASTEXITCODE
-    if ($statusCode -eq 0) {
-        $reportScript = Join-Path $PSScriptRoot 'ensure_daily_report.ps1'
-        if ($WhatIf) {
-            & $reportScript -ReportDate $DataDate -DatabasePath $DatabasePath -WhatIf
-        }
-        else {
-            # Browser timeouts must not consume the guard task's five-minute execution budget.
-            $reportArguments = @(
-                '-NoProfile', '-ExecutionPolicy', 'Bypass',
-                '-File', ('"{0}"' -f $reportScript),
-                '-ReportDate', $DataDate,
-                '-DatabasePath', ('"{0}"' -f $DatabasePath)
-            )
-            Start-Process -FilePath 'powershell.exe' -ArgumentList $reportArguments `
-                -WorkingDirectory $ProjectRoot -WindowStyle Hidden
-        }
-        exit 0
-    }
-    if ($statusCode -ne 10) {
-        Write-GuardLog "ERROR Status check failed with exit code $statusCode"
-        exit 1
-    }
-
-    $runnerMutex = [System.Threading.Mutex]::new(
-        $false,
-        'Global\InvestDailyMarketSyncRunner'
-    )
-    $runnerAvailable = $runnerMutex.WaitOne(0)
-    if ($runnerAvailable) {
-        $runnerMutex.ReleaseMutex()
-    }
-    $runnerMutex.Dispose()
-    if (-not $runnerAvailable) {
-        exit 0
-    }
-
-    $status = $statusText | ConvertFrom-Json
-    $message = 'INCOMPLETE stock={0}/{1}, etf={2}/{3}' -f `
-        $status.stock.completed, $status.stock.expected, `
-        $status.etf.completed, $status.etf.expected
-    if ($WhatIf) {
-        Write-Host "WOULD_LAUNCH $message"
-        exit 10
-    }
-
-    $runner = Join-Path $PSScriptRoot 'run_daily_market_sync.ps1'
-    $arguments = @(
-        '-NoProfile',
-        '-ExecutionPolicy', 'Bypass',
-        '-File', ('"{0}"' -f $runner),
-        '-DataDate', $DataDate,
-        '-DatabasePath', ('"{0}"' -f $DatabasePath),
-        '-PythonDirectory', ('"{0}"' -f $PythonDirectory),
-        '-TdxPluginPath', ('"{0}"' -f $TdxPluginPath)
-    )
-    Start-Process `
-        -FilePath 'powershell.exe' `
-        -ArgumentList $arguments `
-        -WorkingDirectory $ProjectRoot `
-        -WindowStyle Hidden
-    Write-GuardLog "LAUNCHED $message"
-}
-finally {
-    Pop-Location
-}
+# 后台执行保留原五分钟检查器预算，实际数据结果由 Python 状态和日志记录。
+$QuotedArguments = $Arguments | ForEach-Object { '"' + $_.Replace('"', '\"') + '"' }
+$RunTag = Get-Date -Format 'yyyyMMdd_HHmmss_fff'
+Start-Process -FilePath $PythonExe -ArgumentList $QuotedArguments -WindowStyle Hidden `
+    -WorkingDirectory $ProjectRoot `
+    -RedirectStandardOutput (Join-Path $LogDirectory ("guard_{0}.log" -f $RunTag)) `
+    -RedirectStandardError (Join-Path $LogDirectory ("guard_{0}.err.log" -f $RunTag))

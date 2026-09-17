@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from factor_strategy.backtest import run_backtest
-from factor_strategy.config import load_config
+from invest.research.stocks.backtest import run_backtest
+from invest.research.stocks.config import load_config
 
-from .test_factor_strategy import _seed_database
+from tests.test_factor_strategy import _seed_database
 
 
 def test_monthly_backtest_runs_and_balances_nav() -> None:

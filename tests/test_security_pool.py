@@ -7,9 +7,12 @@ from pathlib import Path
 
 import pytest
 
-from security_pool.main import daily_update, full_load
-from security_pool.processor import parse_date, parse_flag, parse_float
-from tdx_client import TdxClient
+from invest.market.security_pool.main import daily_update
+from invest.market.security_pool.main import full_load
+from invest.market.security_pool.processor import parse_date
+from invest.market.security_pool.processor import parse_flag
+from invest.market.security_pool.processor import parse_float
+from invest.providers.tdx_client import TdxClient
 
 
 class FakeTdxApi:

@@ -8,15 +8,15 @@ import pandas as pd
 import pytest
 
 from tests.test_etf_strategy import market
-from etf_strategy.backtest import backtest
-from etf_strategy.config import load_config
-from etf_strategy.data import Dataset
-from etf_strategy.events import event_checks
-from etf_strategy.rotation import select_rotation
-from etf_strategy.storage import import_records
-from etf_strategy.strategies import target
-from etf_strategy.ten_year import phase_ledger
-from etf_strategy.full_market import report_run
+from invest.research.etf.backtest import backtest
+from invest.research.etf.config import load_config
+from invest.research.etf.data import Dataset
+from invest.research.etf.events import event_checks
+from invest.research.etf.rotation import select_rotation
+from invest.storage.etf import import_records
+from invest.research.etf.strategies import target
+from invest.research.etf.ten_year import phase_ledger
+from invest.research.etf.full_market import report_run
 
 
 def inputs():

@@ -15,8 +15,9 @@ STOCK_DOMAINS = ("bar", "capital", "action", "trade")
 
 
 def get_status(database: Path, target_date: str) -> dict[str, object]:
+    # 只读检查同步状态，错误路径不得创建新的空数据库。
     date.fromisoformat(target_date)
-    connection = sqlite3.connect(database)
+    connection = sqlite3.connect(database.resolve().as_uri() + '?mode=ro', uri=True)
     try:
         current_date = connection.execute(
             "SELECT MAX(data_date) FROM stock_current"
@@ -121,6 +122,7 @@ def get_status(database: Path, target_date: str) -> dict[str, object]:
 
 
 def main() -> None:
+    # 输出同步完整性状态，并用退出码区分完成与待补采。
     parser = argparse.ArgumentParser()
     parser.add_argument("--db", type=Path, default=DEFAULT_DB)
     parser.add_argument("--date", default=date.today().isoformat())

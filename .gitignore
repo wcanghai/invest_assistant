@@ -10,6 +10,41 @@ dist/
 .tmp/
 .pytest_tmp_*/
 test-temp/
+
+# 项目数据、运行报告、备份和日志不得提交到 Git
+/data/
+/reports/
+/backups/
+/logs/
+/lixinger_api_docs.json
+/lixinger_api_docs.md
+
+# 常见数据库、数据集、模型及大型归档文件（无论位于何处）
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.parquet
+*.feather
+*.arrow
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+*.joblib
+*.npy
+*.npz
+*.pt
+*.pth
+*.onnx
+*.zip
+*.7z
+*.rar
+*.tar
+*.tar.gz
+*.tgz
+
+# 以下细分规则予以保留，便于说明历史运行产物
 data/databases/*.db
 data/databases/*.db-*
 data/databases/*.lock
@@ -30,7 +65,4 @@ data/scheduler_test_*/
 data/*checkpoint*.txt
 data/report_schedule.json
 data/databases/migration_manifest.json
-backups/
-logs/
-reports/
 config.local.toml

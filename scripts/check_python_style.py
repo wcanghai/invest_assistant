@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     # 只检查交付源码、测试和新增维护工具，历史工具保持原有验证范围。
-    files = list((ROOT / "src").rglob("*.py")) + list((ROOT / "tests").glob("*.py"))
+    files = list((ROOT / "src").rglob("*.py")) + list((ROOT / "tests").rglob("*.py"))
     files += [ROOT / "scripts" / name for name in (
         "check_python_style.py", "relocate_modules.py", "verify_module_cutover.py")]
     issues = []

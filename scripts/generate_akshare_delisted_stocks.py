@@ -18,7 +18,7 @@ import requests
 SSE_QUERY_URL = "https://query.sse.com.cn/commonQuery.do"
 SZSE_REPORT_URL = "https://www.szse.cn/api/report/ShowReport"
 DEFAULT_START_DATE = date(2004, 1, 1)
-DEFAULT_OUTPUT = Path("doc/AKShare退市股票列表_2004至今_20260902.md")
+DEFAULT_OUTPUT = Path("reports/market/AKShare退市股票列表_2004至今_20260902.md")
 
 
 def parse_args() -> argparse.Namespace:

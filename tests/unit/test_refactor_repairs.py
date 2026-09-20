@@ -18,7 +18,7 @@ from invest.research.stocks.backtest import run_backtest
 from invest.cli import _append_default
 from invest.cli import _absolute_paths
 from invest.core.settings import load_settings
-from tests.test_factor_strategy import _seed_database
+from tests.unit.test_factor_strategy import _seed_database
 
 
 def test_split_connection_preserves_scores_and_isolates_writes(tmp_path):

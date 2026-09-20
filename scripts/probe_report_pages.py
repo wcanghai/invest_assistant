@@ -12,7 +12,7 @@ URLS = {
     "us": "https://finance.yahoo.com/quote/AAPL/",
     "crypto": "https://www.kraken.com/prices/bitcoin",
 }
-DEST = Path(__file__).resolve().parents[1] / "data/report_probe"
+DEST = Path(__file__).resolve().parents[1] / ".tmp/report_probe"
 
 
 async def inspect(context, key, url):

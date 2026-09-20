@@ -12,6 +12,8 @@ param(
 
     [string]$DatabasePath,
 
+    [string]$PythonPath,
+
     [string]$TdxPluginPath = 'D:\software\tdx\PYPlugins\user',
 
     [ValidateRange(1, 20)]
@@ -37,6 +39,10 @@ if ([string]::IsNullOrWhiteSpace($DatabasePath)) {
     $DatabasePath = Join-Path $ProjectRoot 'data\databases\market.db'
 }
 $DatabasePath = [System.IO.Path]::GetFullPath($DatabasePath)
+if ([string]::IsNullOrWhiteSpace($PythonPath)) {
+    $PythonPath = Join-Path $ProjectRoot '.venv-report\Scripts\python.exe'
+}
+$PythonPath = [System.IO.Path]::GetFullPath($PythonPath)
 $LogDirectory = Join-Path $ProjectRoot 'logs'
 $LogPath = Join-Path $LogDirectory (
     'all_a_stock_full_load_{0}.log' -f (Get-Date -Format 'yyyyMMdd_HHmmss')
@@ -49,7 +55,7 @@ $LegacyCheckpointPath = Join-Path (
     Split-Path -Parent $DatabasePath
 ) ("full_load_checkpoint_$EndDate.txt")
 $ReportPath = Join-Path $ProjectRoot (
-    "doc\all_a_stock_${PhaseToken}_database_status_$EndDate.md"
+    "reports\audit\all_a_stock_${PhaseToken}_database_status_$EndDate.md"
 )
 $Domains = switch ($Phase) {
     'Stage1' { 'bar,capital,action,trade' }
@@ -79,7 +85,7 @@ function Format-Command {
             $_
         }
     }
-    return 'python ' + ($displayArguments -join ' ')
+    return $PythonPath + ' ' + ($displayArguments -join ' ')
 }
 
 function Invoke-PythonStep {
@@ -94,14 +100,14 @@ function Invoke-PythonStep {
         return
     }
 
-    & python @Arguments
+    & $PythonPath @Arguments
     if ($LASTEXITCODE -ne 0) {
         throw "$Name failed. Python exit code: $LASTEXITCODE"
     }
 }
 
 function Get-AllAStockCodes {
-    $codeText = & python -m invest market helper `
+    $codeText = & $PythonPath -m invest market helper `
         scope --db $DatabasePath --scope AllA
     if ($LASTEXITCODE -ne 0) {
         throw 'Failed to read all A-share stock codes from SQLite.'
@@ -151,7 +157,7 @@ function Invoke-FullStockChunk {
         $previousErrorPreference = $ErrorActionPreference
         try {
             $ErrorActionPreference = 'Continue'
-            $output = & python @arguments 2>&1
+            $output = & $PythonPath @arguments 2>&1
             $exitCode = $LASTEXITCODE
         }
         finally {
@@ -191,8 +197,8 @@ try {
         throw "StartDate cannot be later than EndDate: $StartDate"
     }
 
-    if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
-        throw 'Python was not found. Install Python or add it to PATH.'
+    if (-not (Test-Path -LiteralPath $PythonPath)) {
+        throw "Python was not found: $PythonPath"
     }
     if (-not (Test-Path -LiteralPath (Join-Path $TdxPluginPath 'tqcenter.py'))) {
         throw "TDX plugin tqcenter.py was not found: $TdxPluginPath"
@@ -238,6 +244,7 @@ try {
     Write-Host "  Start date:        $StartDate"
     Write-Host "  End date:          $EndDate"
     Write-Host "  Database:          $DatabasePath"
+    Write-Host "  Python:            $PythonPath"
     Write-Host "  Bar batch size:    $BarBatchSize"
     Write-Host "  Metric batch size: $MetricBatchSize"
     Write-Host "  Stock chunk size:  $StockChunkSize"
@@ -266,6 +273,18 @@ try {
         $stockCodes = Get-AllAStockCodes
         if ($stockCodes.Count -lt 5000) {
             throw "AllA scope is unexpectedly small: $($stockCodes.Count) stocks."
+        }
+        if (
+            $Phase -eq 'FinancialAll' -and
+            -not $DryRun -and
+            -not (Test-Path -LiteralPath $CheckpointPath)
+        ) {
+            Invoke-PythonStep 'Seed completed 438-field financial checkpoint' @(
+                '.\scripts\generate_financialall_checkpoint.py',
+                '--db', $DatabasePath,
+                '--output', $CheckpointPath,
+                '--start-date', $StartDate
+            )
         }
         if (
             $Phase -eq 'Stage1' -and

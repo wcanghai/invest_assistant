@@ -51,9 +51,9 @@ def main():
     sys.path.insert(0, str(ROOT))
     sys.path.insert(0, str(args.legacy_root.resolve()))
     args.output.mkdir(parents=True, exist_ok=True)
-    from tests.test_factor_strategy import _seed_database
-    from tests.test_etf_strategy import market
-    from tests.test_etf_rotation import RotationTests
+    from tests.unit.test_factor_strategy import _seed_database
+    from tests.unit.test_etf_strategy import market
+    from tests.unit.test_etf_rotation import RotationTests
 
     checks = []
     old, new = "factor_strategy", "invest.research.stocks"

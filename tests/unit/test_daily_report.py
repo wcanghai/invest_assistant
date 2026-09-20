@@ -181,6 +181,20 @@ def test_http_routes_and_same_origin_protection(tmp_path):
             assert "frame-ancestors 'none'" in response.headers["Content-Security-Policy"]
         with urlopen(base + "/api/reports") as response:
             assert json.load(response) == []
+        with urlopen(base + "/recommendations") as response:
+            assert "股票推荐研究" in response.read().decode("utf-8")
+        with urlopen(base + "/api/recommendations/job") as response:
+            assert json.load(response)["running"] is False
+        with urlopen(base + "/etf-recommendations") as response:
+            assert "ETF 推荐研究" in response.read().decode("utf-8")
+        with urlopen(base + "/api/etf-recommendations/job") as response:
+            assert json.load(response)["running"] is False
+        with pytest.raises(HTTPError) as error:
+            urlopen(base + "/api/recommendations")
+        assert error.value.code == 404
+        with pytest.raises(HTTPError) as error:
+            urlopen(base + "/api/etf-recommendations")
+        assert error.value.code == 404
         for path, expected in (("/api/report", 404), ("/api/report?id=no", 400),
                                ("/../common.py", 404)):
             with pytest.raises(HTTPError) as error:

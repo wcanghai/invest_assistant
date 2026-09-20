@@ -17,6 +17,13 @@ from invest.storage.reports import get_report
 from invest.storage.reports import list_reports
 
 STATIC = Path(__file__).parent / "static"
+from invest.reporting.securities import bars as security_bars
+from invest.reporting.securities import connect_readonly
+from invest.reporting.securities import detail as security_detail
+from invest.reporting.securities import search as search_securities
+from invest.reporting.rankings import connect_readonly as connect_rankings
+from invest.reporting.rankings import meta as rankings_meta
+from invest.reporting.rankings import query as rankings_query
 
 
 class ReportServer(ThreadingHTTPServer):
@@ -30,6 +37,18 @@ class ReportServer(ThreadingHTTPServer):
         self.config = config
         self.refresh_lock = threading.Lock()
         self.job = {"running": False, "message": "尚未执行网页更新"}
+        self.recommendation_lock = threading.Lock()
+        self.recommendation_job = {
+            "running": False,
+            "message": "尚未计算股票推荐",
+        }
+        self.recommendation_results = None
+        self.etf_recommendation_lock = threading.Lock()
+        self.etf_recommendation_job = {
+            "running": False,
+            "message": "尚未计算 ETF 推荐",
+        }
+        self.etf_recommendation_results = None
 
     def refresh(self):
         # 后台运行完整采集与生成，页面轮询只读取任务状态。
@@ -49,6 +68,60 @@ class ReportServer(ThreadingHTTPServer):
         finally:
             self.job["finished_at"] = now_iso()
             self.refresh_lock.release()
+
+    def run_recommendations(self):
+        # 后台计算三种推荐类型，只在内存中保留当前结果。
+        from invest.reporting.recommendations import generate
+
+        def progress(message):
+            # 更新可供页面轮询的计算阶段。
+            self.recommendation_job = {"running": True, "message": message}
+
+        try:
+            progress("正在准备推荐计算…")
+            result = generate(self.source_db, progress)
+            self.recommendation_results = result
+            self.recommendation_job = {
+                "running": False,
+                "message": "三种类型的候选已计算完成",
+                "generated_at": result["generated_at"],
+            }
+        except Exception as exc:
+            self.recommendation_job = {
+                "running": False,
+                "message": "推荐计算失败",
+                "error": str(exc),
+            }
+        finally:
+            self.recommendation_job["finished_at"] = now_iso()
+            self.recommendation_lock.release()
+
+    def run_etf_recommendations(self):
+        # 后台计算全市场探索性 ETF 候选，只保留当前内存结果。
+        from invest.reporting.etf_recommendations import generate
+
+        def progress(message):
+            # 向页面轮询接口写入当前计算阶段。
+            self.etf_recommendation_job = {"running": True, "message": message}
+
+        try:
+            progress("正在准备 ETF 推荐计算…")
+            result = generate(self.source_db, progress)
+            self.etf_recommendation_results = result
+            self.etf_recommendation_job = {
+                "running": False,
+                "message": "三种类型的 ETF 候选已计算完成",
+                "generated_at": result["generated_at"],
+            }
+        except Exception as exc:
+            self.etf_recommendation_job = {
+                "running": False,
+                "message": "ETF 推荐计算失败",
+                "error": str(exc),
+            }
+        finally:
+            self.etf_recommendation_job["finished_at"] = now_iso()
+            self.etf_recommendation_lock.release()
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -83,6 +156,22 @@ class Handler(BaseHTTPRequestHandler):
             return self.json_reply(403, {"error": "仅允许本机访问"})
         parsed = urlparse(self.path)
         assets = {"/": ("index.html", "text/html"),
+                  "/securities": ("securities.html", "text/html"),
+                  "/securities.html": ("securities.html", "text/html"),
+                  "/securities.js": ("securities.js", "text/javascript"),
+                  "/securities.css": ("securities.css", "text/css"),
+                  "/rankings": ("rankings.html", "text/html"),
+                  "/rankings.html": ("rankings.html", "text/html"),
+                  "/rankings.js": ("rankings.js", "text/javascript"),
+                  "/rankings.css": ("rankings.css", "text/css"),
+                  "/recommendations": ("recommendations.html", "text/html"),
+                  "/recommendations.html": ("recommendations.html", "text/html"),
+                  "/recommendations.js": ("recommendations.js", "text/javascript"),
+                  "/recommendations.css": ("recommendations.css", "text/css"),
+                  "/etf-recommendations": ("etf_recommendations.html", "text/html"),
+                  "/etf-recommendations.html": ("etf_recommendations.html", "text/html"),
+                  "/etf-recommendations.js": ("etf_recommendations.js", "text/javascript"),
+                  "/etf-recommendations.css": ("etf_recommendations.css", "text/css"),
                   "/favicon.svg": ("favicon.svg", "image/svg+xml"),
                   "/app.js": ("app.js", "text/javascript"),
                   "/style.css": ("style.css", "text/css")}
@@ -91,6 +180,18 @@ class Handler(BaseHTTPRequestHandler):
             return self.reply(200, (STATIC / name).read_bytes(), mime + "; charset=utf-8")
         if parsed.path == "/api/job":
             return self.json_reply(200, self.server.job)
+        if parsed.path == "/api/recommendations/job":
+            return self.json_reply(200, self.server.recommendation_job)
+        if parsed.path == "/api/etf-recommendations/job":
+            return self.json_reply(200, self.server.etf_recommendation_job)
+        if parsed.path in ("/api/recommendations", "/api/recommendations/detail"):
+            return self.recommendation_api(parsed)
+        if parsed.path in ("/api/etf-recommendations", "/api/etf-recommendations/detail"):
+            return self.etf_recommendation_api(parsed)
+        if parsed.path in ("/api/securities/search", "/api/security", "/api/security/bars"):
+            return self.security_api(parsed)
+        if parsed.path in ("/api/rankings/meta", "/api/rankings"):
+            return self.rankings_api(parsed)
         conn = connect(self.server.report_db)
         try:
             if parsed.path == "/api/reports":
@@ -109,11 +210,141 @@ class Handler(BaseHTTPRequestHandler):
         finally:
             conn.close()
 
+    def security_api(self, parsed):
+        # 返回证券搜索、详情和历史行情。
+        query = parse_qs(parsed.query)
+        try:
+            conn = connect_readonly(self.server.source_db)
+            try:
+                if parsed.path == "/api/securities/search":
+                    items = search_securities(conn, query.get("q", [""])[0])
+                    return self.json_reply(200, {"items": items})
+                code = query.get("code", [""])[0].strip()
+                if not code:
+                    return self.json_reply(400, {"error": "缺少证券代码"})
+                if parsed.path == "/api/security":
+                    value = security_detail(conn, code)
+                    if value:
+                        return self.json_reply(200, value)
+                    return self.json_reply(404, {"error": "证券不存在"})
+                values = security_bars(
+                    conn,
+                    code,
+                    query.get("start", [None])[0],
+                    query.get("end", [None])[0],
+                    query.get("period", ["day"])[0],
+                )
+                return self.json_reply(200, values)
+            finally:
+                conn.close()
+        except (ValueError, FileNotFoundError) as exc:
+            return self.json_reply(400, {"error": str(exc)})
+        except Exception:
+            return self.json_reply(500, {"error": "查询失败，请稍后重试"})
+
+    def rankings_api(self, parsed):
+        # 返回股票排行榜的只读数据与筛选元数据。
+        query = parse_qs(parsed.query)
+        try:
+            conn = connect_rankings(self.server.source_db)
+            try:
+                if parsed.path.endswith("/meta"):
+                    return self.json_reply(200, rankings_meta(conn))
+                metric = query.get("metric", ["day_return"])[0]
+                filters = {key: value[0] for key, value in query.items() if value}
+                return self.json_reply(200, rankings_query(conn, metric, filters))
+            finally:
+                conn.close()
+        except (ValueError, FileNotFoundError) as exc:
+            return self.json_reply(400, {"error": str(exc)})
+        except Exception:
+            return self.json_reply(500, {"error": "排行榜查询失败，请稍后重试"})
+
+    def recommendation_api(self, parsed):
+        # 返回当前内存中的推荐列表或股票详情。
+        result = self.server.recommendation_results
+        if result is None:
+            return self.json_reply(404, {"error": "尚无推荐结果，请先点击重新计算"})
+        query = parse_qs(parsed.query)
+        profile = query.get("profile", ["balanced"])[0]
+        if profile not in result["profiles"]:
+            return self.json_reply(400, {"error": "不支持的推荐类型"})
+        profile_data = result["profiles"][profile]
+        if parsed.path.endswith("/detail"):
+            code = query.get("code", [""])[0].strip()
+            item = next((row for row in profile_data["items"] if row["code"] == code), None)
+            if item is None:
+                return self.json_reply(404, {"error": "该股票不在当前候选中"})
+            return self.json_reply(200, {
+                "generated_at": result["generated_at"],
+                "summary": result["summary"],
+                "profile": profile_data["profile"],
+                "profile_name": profile_data["profile_name"],
+                "item": item,
+            })
+        return self.json_reply(200, {
+            "generated_at": result["generated_at"],
+            "summary": result["summary"],
+            **profile_data,
+        })
+
+    def etf_recommendation_api(self, parsed):
+        # 返回当前内存中的 ETF 推荐列表或详情。
+        result = self.server.etf_recommendation_results
+        if result is None:
+            return self.json_reply(404, {"error": "尚无 ETF 推荐结果，请先点击重新计算"})
+        query = parse_qs(parsed.query)
+        profile = query.get("profile", ["balanced"])[0]
+        if profile not in result["profiles"]:
+            return self.json_reply(400, {"error": "不支持的推荐类型"})
+        profile_data = result["profiles"][profile]
+        if parsed.path.endswith("/detail"):
+            code = query.get("code", [""])[0].strip()
+            item = next((row for row in profile_data["items"] if row["code"] == code), None)
+            if item is None:
+                return self.json_reply(404, {"error": "该 ETF 不在当前候选中"})
+            return self.json_reply(200, {
+                "generated_at": result["generated_at"],
+                "summary": result["summary"],
+                "profile": profile_data["profile"],
+                "profile_name": profile_data["profile_name"],
+                "item": item,
+            })
+        return self.json_reply(200, {
+            "generated_at": result["generated_at"],
+            "summary": result["summary"],
+            **profile_data,
+        })
+
     def do_POST(self):
         # 同源按钮显式触发更新，不允许跨站调用或并行采集。
         origin = self.headers.get("Origin")
         if not self.valid_host() or origin != "http://" + self.headers.get("Host", ""):
             return self.json_reply(403, {"error": "只接受本网站发起的更新"})
+        if self.path == "/api/recommendations/run":
+            if not self.server.recommendation_lock.acquire(blocking=False):
+                return self.json_reply(409, {"error": "推荐计算正在运行"})
+            self.server.recommendation_job = {
+                "running": True,
+                "message": "正在启动推荐计算…",
+            }
+            threading.Thread(
+                target=self.server.run_recommendations,
+                daemon=True,
+            ).start()
+            return self.json_reply(202, self.server.recommendation_job)
+        if self.path == "/api/etf-recommendations/run":
+            if not self.server.etf_recommendation_lock.acquire(blocking=False):
+                return self.json_reply(409, {"error": "ETF 推荐计算正在运行"})
+            self.server.etf_recommendation_job = {
+                "running": True,
+                "message": "正在启动 ETF 推荐计算…",
+            }
+            threading.Thread(
+                target=self.server.run_etf_recommendations,
+                daemon=True,
+            ).start()
+            return self.json_reply(202, self.server.etf_recommendation_job)
         if self.path != "/api/refresh":
             return self.json_reply(404, {"error": "接口不存在"})
         if not self.server.refresh_lock.acquire(blocking=False):

@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from tests.test_etf_strategy import market
+from tests.unit.test_etf_strategy import market
 from invest.research.etf.backtest import backtest
 from invest.research.etf.config import load_config
 from invest.research.etf.data import Dataset

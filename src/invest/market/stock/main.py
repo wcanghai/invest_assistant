@@ -7,6 +7,8 @@ from invest.core.settings import load_settings
 
 import argparse
 import logging
+import threading
+import time
 from collections.abc import Sequence
 from datetime import date
 from datetime import timedelta
@@ -489,7 +491,44 @@ def bulk_full_load(
         metric_batches = (
             _scope_batches(scope, metric_batch_size) if metric_domains else []
         )
+        verbose_financial_progress = (
+            requested_domains == ("financial",)
+            and tuple(financial_fields) != CORE_FN_FIELDS
+        )
         for index, batch in enumerate(metric_batches, start=1):
+            stock_label = ",".join(stock["stock_code"] for stock in batch)
+            heartbeat_stop: threading.Event | None = None
+            heartbeat_thread: threading.Thread | None = None
+            if verbose_financial_progress:
+                LOGGER.info(
+                    "金融全量开始 %s/%s，股票 %s",
+                    index,
+                    len(metric_batches),
+                    stock_label,
+                )
+                heartbeat_stop = threading.Event()
+                heartbeat_started_at = time.monotonic()
+
+                def log_financial_heartbeat() -> None:
+                    assert heartbeat_stop is not None
+                    while not heartbeat_stop.wait(15):
+                        elapsed_seconds = int(
+                            time.monotonic() - heartbeat_started_at
+                        )
+                        LOGGER.info(
+                            "金融全量仍在运行 %s/%s，股票 %s，已等待 %s 秒",
+                            index,
+                            len(metric_batches),
+                            stock_label,
+                            elapsed_seconds,
+                        )
+
+                heartbeat_thread = threading.Thread(
+                    target=log_financial_heartbeat,
+                    name="financial-progress-heartbeat",
+                    daemon=True,
+                )
+                heartbeat_thread.start()
             try:
                 counts = _save_metric_batch(
                     connection,
@@ -506,7 +545,16 @@ def bulk_full_load(
             except Exception as exc:
                 _record_batch_error(errors, batch, "METRIC", exc)
                 LOGGER.exception("指标数据批次 %s 获取失败", index)
-            if index % 10 == 0 or index == len(metric_batches):
+            finally:
+                if heartbeat_stop is not None:
+                    heartbeat_stop.set()
+                if heartbeat_thread is not None:
+                    heartbeat_thread.join(timeout=1)
+            if (
+                verbose_financial_progress
+                or index % 10 == 0
+                or index == len(metric_batches)
+            ):
                 LOGGER.info(
                     "指标数据批次进度 %s/%s，成功股票 %s",
                     index,

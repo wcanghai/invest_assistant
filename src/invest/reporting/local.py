@@ -82,6 +82,10 @@ def read_local(config, target=None, path=SOURCE_DB):
                 if row["status"] != "ok":
                     row["error"] = "缺少目标交易日行情，显示最近可用值"
                 row["percentile"] = percentile(history, target, category == "a_share_stocks")
+                for days, field in ((22, "return_1m"), (126, "return_6m")):
+                    prices = [number(item.get("close")) for item in history]
+                    prices = [price for price in prices if price and price > 0]
+                    row[field] = round((prices[-1] / prices[-days - 1] - 1) * 100, 2) if len(prices) > days else None
                 row["price_basis"] = "复权" if category == "a_share_stocks" else "未复权"
                 if category == "a_share_stocks":
                     for field in ("pe_ttm", "pb_mrq", "industry_name"):

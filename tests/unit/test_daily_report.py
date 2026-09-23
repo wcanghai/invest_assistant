@@ -214,6 +214,33 @@ def test_http_routes_and_same_origin_protection(tmp_path):
         worker.join()
 
 
+def test_optimized_static_pages_and_shared_ui_are_served(tmp_path):
+    # 五个页面加载共享导航，并公开新增的纯前端交互资源。
+    server = ReportServer(("127.0.0.1", 0), report_db=tmp_path / "reports.db")
+    worker = threading.Thread(target=server.serve_forever, daemon=True)
+    worker.start()
+    base = f"http://127.0.0.1:{server.server_port}"
+    try:
+        for path in ("/", "/recommendations", "/etf-recommendations",
+                     "/rankings", "/securities"):
+            with urlopen(base + path) as response:
+                html = response.read().decode("utf-8")
+            assert '/ui.js' in html
+            assert '/nav-layout.css' in html
+            assert 'id="site-navigation"' in html
+            assert 'name="description"' in html
+        with urlopen(base + "/ui.js") as response:
+            shared = response.read().decode("utf-8")
+        assert "市场日报" in shared
+        assert "request(url" in shared
+        with urlopen(base + "/securities-extra.css") as response:
+            assert ".recent-item" in response.read().decode("utf-8")
+    finally:
+        server.shutdown()
+        server.server_close()
+        worker.join()
+
+
 def test_collect_lock_excludes_second_process_handle(tmp_path):
     # 同一结果库的两次采集不能同时持锁，退出后可重新获取。
     path = tmp_path / "reports.db"
@@ -223,6 +250,33 @@ def test_collect_lock_excludes_second_process_handle(tmp_path):
                 pass
     with collection_lock(path):
         pass
+
+
+def test_watchlist_migrates_and_supports_idempotent_changes(tmp_path):
+    # 首次合并旧名单，之后所有项目都可加入或删除且能够重启恢复。
+    from invest.reporting.watchlist import add
+    from invest.reporting.watchlist import load
+    from invest.reporting.watchlist import remove
+
+    config = tmp_path / "config.json"
+    tracking = tmp_path / "tracking.json"
+    watchlist = tmp_path / "watchlist.json"
+    config.write_text(json.dumps({
+        "a_share_stocks": {"000001.SZ": "平安银行"},
+        "industry_etfs": {"510300.SH": "沪深300ETF"},
+    }, ensure_ascii=False), encoding="utf-8")
+    tracking.write_text(json.dumps({
+        "a_share_stocks": {"600000.SH": "浦发银行"},
+    }, ensure_ascii=False), encoding="utf-8")
+    initial = load(watchlist, config, tracking)
+    assert list(initial["a_share_stocks"]) == ["000001.SZ", "600000.SH"]
+    add("a_share_stocks", "600000.SH", "浦发银行", watchlist)
+    add("industry_etfs", "512880.SH", "证券ETF", watchlist)
+    remove("a_share_stocks", "000001.SZ", watchlist)
+    remove("a_share_stocks", "000001.SZ", watchlist)
+    restored = load(watchlist, config, tracking)
+    assert restored["a_share_stocks"] == {"600000.SH": "浦发银行"}
+    assert restored["industry_etfs"]["512880.SH"] == "证券ETF"
 
 
 def test_sina_index_full_quote_and_null_reference():

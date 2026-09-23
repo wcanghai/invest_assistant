@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="本地全市场 ETF 研究候选">
   <title>ETF 推荐研究</title><link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/etf-recommendations.css">
+  <link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/nav-layout.css"><link rel="stylesheet" href="/etf-recommendations.css">
 </head>
 <body>
 <header><div class="brand"><span class="mark">基</span><div><strong>ETF 推荐研究</strong><small>全市场探索性候选</small></div></div>
-<div class="actions"><a href="/">市场日报</a><a href="/recommendations">股票推荐</a><a href="/rankings">股票排行榜</a><a href="/securities">证券查询</a><button id="run">重新计算</button></div></header>
+<div class="actions" id="site-navigation" aria-label="主导航"><a href="/">市场日报</a><a href="/recommendations">股票推荐</a><a href="/etf-recommendations" class="active" aria-current="page">ETF 推荐</a><a href="/rankings">股票排行榜</a><a href="/securities">证券查询</a><a href="/research">研究中心</a></div></header><div class="page-toolbar" aria-label="页面操作"><button id="run">计算最新推荐</button></div>
 <main>
   <div class="heading"><div><p class="eyebrow">ETF RESEARCH</p><h1>当前 ETF 研究候选</h1><p id="meta">结果为探索性研究，需手动触发计算。</p></div><span id="status" class="badge warning">探索性</span></div>
   <p id="job" class="job" role="status" aria-live="polite"></p>
@@ -16,9 +16,9 @@
   <div class="toolbar"><div id="profiles" class="profiles" role="tablist" aria-label="推荐类型"><button role="tab" data-profile="conservative">稳健型</button><button role="tab" data-profile="balanced" aria-selected="true">均衡型</button><button role="tab" data-profile="aggressive">进取型</button></div>
   <div class="filters"><label>搜索<input id="search" type="search" placeholder="名称或代码"></label><label>跟踪指数<select id="underlying"><option value="">全部跟踪指数</option></select></label><label>排序<select id="sort"><option value="rank">综合排名</option><option value="return252">252日涨幅从高到低</option><option value="volatility">60日波动率从低到高</option><option value="liquidity">20日成交额从高到低</option></select></label></div></div>
   <div id="empty" class="empty"><h2>尚无当前 ETF 推荐</h2><p>点击“重新计算”，系统将扫描全市场 ETF 并生成三类 Top 20 探索性候选。</p></div>
-  <section id="results" hidden><div class="section-title"><h2 id="list-title">均衡型 Top 20</h2><span id="count"></span></div><div class="table-wrap"><table><thead><tr><th>排名</th><th>ETF</th><th>跟踪指数</th><th>综合分</th><th>核心优势</th><th>主要风险</th><th>20 / 126 / 252日</th><th>60日波动</th><th>20日成交额</th></tr></thead><tbody id="rows"></tbody></table></div></section>
+  <section id="results" hidden><div class="section-title"><h2 id="list-title">均衡型 Top 30</h2><span id="count"></span></div><div class="table-wrap"><table><thead><tr><th>排名</th><th>ETF</th><th>跟踪指数</th><th>综合分</th><th>核心优势</th><th>主要风险</th><th>20 / 126 / 252日</th><th>60日波动</th><th>20日成交额</th><th>每日跟踪</th></tr></thead><tbody id="rows"></tbody></table></div></section>
   <details class="formula"><summary>计算方法与数据口径</summary><div class="formula-body"><p><strong>综合分</strong>＝动量、趋势、低风险和流动性得分的固定加权和。各原始指标均先执行 MAD 三倍缩尾，再转换为 [-1, 1] 的全市场横截面排名。ETF 不执行行业或市值中性化。</p><div class="weight-grid"><article><h3>稳健型</h3><p>动量 20% · 趋势 20% · 低风险 40% · 流动性 20%</p></article><article><h3>均衡型</h3><p>动量 35% · 趋势 30% · 低风险 20% · 流动性 15%</p></article><article><h3>进取型</h3><p>动量 55% · 趋势 30% · 低风险 5% · 流动性 10%</p></article></div><h3>因子构成</h3><div class="formula-table table-wrap"><table><thead><tr><th>类别</th><th>计算方式</th></tr></thead><tbody><tr><td>动量</td><td>20、60、126、252 日未复权收盘价收益；长期窗口权重更高。</td></tr><tr><td>趋势</td><td>当前收盘价相对 MA20、MA60、MA200 的位置。</td></tr><tr><td>低风险</td><td>60 日年化波动率、下行波动率和 120 日最大回撤，风险数值取反后计分。</td></tr><tr><td>流动性</td><td>20 日平均成交额、253 日有效交易覆盖率和 20 日成交额稳定性。</td></tr></tbody></table></div><h3>股票池与去重</h3><p>仅保留最近交易日正常交易、至少 253 个有效交易日、253日覆盖率不低于95%、最近20日交易不少于18日且20日平均成交额不低于2,000万元的 ETF。近252日存在未能由已记录公司行动或复权因子解释的40%单日价格跳变时排除。相同跟踪指数仅保留近60日平均成交额最高的产品；跟踪指数缺失的产品单独标记。</p><h3>重要限制</h3><p>当前为全市场探索性筛选：复权因子、基金净值、折溢价、份额、规模及公司行动证据并未完整核验。收益率基于未复权收盘价计算，可能受到分红、拆分或份额变化影响；不得将本页结果作为已认证策略或交易指令。</p></div></details>
 </main>
-<aside id="detail" class="drawer" aria-hidden="true"><button id="close" class="close" aria-label="关闭详情">×</button><div id="detail-body"></div></aside><div id="shade" class="shade" hidden></div>
-<script src="/etf-recommendations.js" defer></script>
+<aside id="detail" class="drawer" aria-hidden="true" role="dialog" aria-modal="true" aria-label="ETF 候选详情"><button id="close" class="close" aria-label="关闭详情">×</button><div id="detail-body"></div></aside><div id="shade" class="shade" hidden></div>
+<script src="/ui.js" defer></script><script src="/etf-recommendations.js" defer></script><script src="/page-enhancements.js" defer></script>
 </body></html>

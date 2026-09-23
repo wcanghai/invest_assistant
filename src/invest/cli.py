@@ -73,6 +73,15 @@ def _parser() -> argparse.ArgumentParser:
     market = sub.add_parser("market", help="市场数据")
     market.add_argument("area", choices=("pool", "stock", "etf", "helper", "financial"))
     market.add_argument("arguments", nargs=argparse.REMAINDER)
+    sources = sub.add_parser("sources", help="公开来源采集")
+    sources.add_argument("action", choices=("collect",))
+    sources.add_argument("--stock")
+    sources.add_argument("--etf")
+    sources.add_argument("--index")
+    sources.add_argument("--start", default="2026-09-01")
+    sources.add_argument("--end", default="2026-09-20")
+    sources.add_argument("--download-pdfs", action="store_true")
+    sources.add_argument("--output")
     research = sub.add_parser("research", help="策略研究")
     research.add_argument(
         "area",
@@ -139,6 +148,16 @@ def main() -> None:
         return
     if args.group == "doctor":
         print(json.dumps(_doctor(), ensure_ascii=False, indent=2))
+        return
+    if args.group == "sources":
+        from invest.providers.external_sources import collect
+
+        output = Path(args.output).resolve() if args.output else settings.path(
+            settings.config["paths"]["evidence_dir"]
+        ) / "public_sources"
+        result = collect(output, stock=args.stock, etf=args.etf, index=args.index,
+                         start=args.start, end=args.end, download_pdfs=args.download_pdfs)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
         return
     if args.group == "market":
         module = {"pool": "invest.market.security_pool.main", "stock": "invest.market.stock.main",

@@ -1,20 +1,28 @@
 <!doctype html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>每日市场观察</title><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/style.css"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="本地市场日报、行情状态与历史版本浏览">
+<title>每日市场观察</title><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/nav-layout.css"></head>
 <body>
 <header><div class="brand"><span class="mark">日</span><div><strong>每日市场观察</strong><small>本地投资日报</small></div></div>
-<div class="actions"><a href="/recommendations">股票推荐</a><a href="/etf-recommendations">ETF 推荐</a><a href="/rankings">股票排行榜</a><a href="/securities">证券查询</a><label for="versions">历史日报</label><select id="versions"><option>读取中…</option></select>
-<a id="download" href="/report.md">导出 Markdown</a><button id="refresh">更新网页行情</button></div></header>
+<div class="actions" id="site-navigation" aria-label="主导航"><a href="/" class="active" aria-current="page">市场日报</a><a href="/recommendations">股票推荐</a><a href="/etf-recommendations">ETF 推荐</a><a href="/rankings">股票排行榜</a><a href="/securities">证券查询</a><a href="/research">研究中心</a></div></header>
+<div class="page-toolbar" aria-label="页面操作"><div class="header-tools"><label for="report-date">日期</label><select id="report-date"><option>读取中…</option></select><label for="versions">版本</label><select id="versions"><option>—</option></select><a id="download" href="/report.md">导出 Markdown</a><button id="refresh">更新网页行情</button></div></div>
 <main><div class="heading"><div><p class="eyebrow">MARKET DAILY</p><h1 id="title">正在读取日报</h1>
 <p id="meta"></p></div><span id="status" class="badge"></span></div>
 <p id="job" role="status" aria-live="polite"></p>
 <div id="empty" hidden>暂无日报。点击“更新网页行情”，将采集外部市场并读取本地最新交易日数据。</div>
 <div id="content" hidden><section class="summary" id="summary" aria-label="市场概览"></section>
+<section class="health"><div class="section-title"><h2>数据健康概览</h2><label class="check"><input id="exceptions-only" type="checkbox">仅看异常</label></div><div id="health"></div></section>
 <nav id="navigation" aria-label="日报章节"></nav><div id="sections"></div>
 <section><div class="section-title"><h2>沪深北市场宽度</h2><span>本地股票逐只汇总</span></div><div id="markets"></div></section>
-<section><div class="section-title"><h2>行业概览</h2><span>当日股票等权统计</span></div><div id="industries"></div></section>
+<section><div class="section-title"><h2>行业概览</h2><span>当日股票等权统计</span></div><div id="industries"></div><button id="toggle-industries" class="secondary">查看全部行业</button></section>
 <section><div class="section-title"><h2>未来 14 天申购日历</h2><span>本地发行记录</span></div><div id="offerings"></div></section>
+<section><div class="section-title"><div><h2>候选标的选择</h2><span>股票、ETF 各 30 只，选择后自动进入后续日报</span></div></div><div class="actions"><a class="button" href="/recommendations">选择推荐股票</a><a class="button secondary" href="/etf-recommendations">选择推荐 ETF</a></div></section>
 <section class="notes"><h2>数据说明</h2><ul id="warnings"></ul></section></div>
 </main><footer>本地保存 · 历史版本可追溯 · 每个市场保留独立数据时间</footer>
-<script src="/app.js" defer></script></body></html>
+<aside id="watchlist-drawer" class="watchlist-drawer" aria-hidden="true" role="dialog" aria-modal="true" aria-label="管理自选">
+<div class="watchlist-head"><div><p class="eyebrow">WATCHLIST</p><h2 id="watchlist-title">管理自选</h2></div><button id="watchlist-close" class="watchlist-close" aria-label="关闭">×</button></div>
+<div class="watchlist-tabs" role="tablist"><button id="watchlist-add-tab" role="tab" aria-selected="true">增加自选</button><button id="watchlist-manage-tab" role="tab" aria-selected="false">管理自选</button></div>
+<div id="watchlist-add-panel" role="tabpanel"><label for="watchlist-search">输入名称或代码</label><input id="watchlist-search" type="search" autocomplete="off" placeholder="例如：宁德时代、300750"><p id="watchlist-message" role="status"></p><div id="watchlist-results" class="watchlist-list"></div></div>
+<div id="watchlist-manage-panel" role="tabpanel" hidden><div id="watchlist-current" class="watchlist-list"></div></div>
+</aside><div id="watchlist-shade" class="watchlist-shade" hidden></div>
+<button id="back-top" class="back-top" aria-label="返回顶部" hidden>↑</button><script src="/ui.js" defer></script><script src="/app.js" defer></script><script src="/page-enhancements.js" defer></script></body></html>

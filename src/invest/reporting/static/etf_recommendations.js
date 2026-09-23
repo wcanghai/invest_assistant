@@ -6,16 +6,12 @@ const esc = value => String(value ?? "—").replace(/[&<>"']/g, char => ({
 const fmt = (value, digits = 2) => value == null ? "—" : Number(value).toLocaleString(
   "zh-CN", {maximumFractionDigits: digits},
 );
-const api = async (url, options) => {
-  const response = await fetch(url, options);
-  const body = await response.json();
-  if (!response.ok) throw Error(body.error || "请求失败");
-  return body;
-};
+const api = (...args) => InvestUI.request(...args);
 const labels = {momentum: "动量", trend: "趋势", low_risk: "低风险", liquidity: "流动性"};
 let profile = "balanced";
 let data = null;
 let poll = null;
+let detailTrigger = null;
 
 function renderOverview() {
   const summary = data.summary;
@@ -45,9 +41,14 @@ function filtered() {
 function renderRows() {
   const rows = filtered();
   $("count").textContent = `显示 ${rows.length} / ${data.items.length} 只`;
-  $("rows").innerHTML = rows.map(row => `<tr data-code="${esc(row.code)}"><td>${row.rank}</td><td class="fund"><strong>${esc(row.name)}</strong><small>${esc(row.code)}</small></td><td>${esc(row.underlying_code)}</td><td class="score">${fmt(row.score, 3)}</td><td class="strength">${esc(row.strengths.join("、"))}</td><td class="risk">${esc(row.risks.join("、"))}</td><td>${fmt(row.metrics.return_20)}% / ${fmt(row.metrics.return_126)}% / ${fmt(row.metrics.return_252)}%</td><td>${fmt(row.metrics.volatility_60)}%</td><td>${fmt(row.metrics.adv20_10k)} 万元</td></tr>`).join("");
+  $("rows").innerHTML = rows.map(row => `<tr data-code="${esc(row.code)}" tabindex="0"><td>${row.rank}</td><td class="fund"><a href="/securities?code=${encodeURIComponent(row.code)}"><strong>${esc(row.name)}</strong><small>${esc(row.code)}</small></a></td><td>${esc(row.underlying_code)}</td><td class="score">${fmt(row.score, 3)}</td><td class="strength">${esc(row.strengths.join("、"))}</td><td class="risk">${esc(row.risks.join("、"))}</td><td>${fmt(row.metrics.return_20)}% / ${fmt(row.metrics.return_126)}% / ${fmt(row.metrics.return_252)}%</td><td>${fmt(row.metrics.volatility_60)}%</td><td>${fmt(row.metrics.adv20_10k)} 万元</td></tr>`).join("");
   $("rows").querySelectorAll("tr").forEach(row => {
-    row.onclick = () => openDetail(row.dataset.code);
+    row.onclick = event => {
+      if (!event.target.closest("a")) { detailTrigger = row; openDetail(row.dataset.code); }
+    };
+    row.onkeydown = event => {
+      if (event.key === "Enter") { detailTrigger = row; openDetail(row.dataset.code); }
+    };
   });
 }
 
@@ -56,7 +57,7 @@ async function load() {
     data = await api(`/api/etf-recommendations?profile=${profile}`);
     $("empty").hidden = true;
     $("results").hidden = false;
-    $("list-title").textContent = `${data.profile_name} Top 20`;
+    $("list-title").textContent = `${data.profile_name} Top 30`;
     renderOverview();
     const current = $("underlying").value;
     const values = [...new Set(data.items.map(row => row.underlying_code).filter(Boolean))]
@@ -102,6 +103,7 @@ function closeDetail() {
   $("detail").classList.remove("open");
   $("detail").setAttribute("aria-hidden", "true");
   $("shade").hidden = true;
+  if (detailTrigger) detailTrigger.focus();
 }
 
 async function checkJob() {

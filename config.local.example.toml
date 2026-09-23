@@ -2,3 +2,6 @@
 [tdx]
 python = "D:/SoftWare/conda/envs/stock-analysis-py312/python.exe"
 plugin_path = "D:/software/tdx/PYPlugins/user"
+
+[integrations]
+web_read_root = "D:/AI_Coding_WorkSpace/web_read"

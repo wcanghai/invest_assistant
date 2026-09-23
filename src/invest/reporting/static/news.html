@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="每日 AI 产业重要资讯、来源覆盖与历史报告">
+  <title>资讯聚合</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/nav-layout.css">
+  <link rel="stylesheet" href="/news.css">
+</head>
+<body>
+<header>
+  <div class="brand"><span class="mark">讯</span><div><strong>资讯聚合</strong>
+    <small>AI 产业投资视角</small></div></div>
+  <div class="actions" id="site-navigation" aria-label="主导航"></div>
+</header>
+<div class="page-toolbar" aria-label="页面操作">
+  <div class="header-tools">
+    <label for="news-date">日期</label><select id="news-date"><option>读取中…</option></select>
+    <button id="refresh">立即更新</button>
+  </div>
+</div>
+<main class="news-page">
+  <section class="news-hero">
+    <div><p class="eyebrow">AI INDUSTRY BRIEF</p><h1 id="title">正在读取重要资讯</h1>
+      <p id="meta">汇集公开来源，并保留时间、证据和覆盖状态。</p></div>
+    <span id="status" class="badge">读取中</span>
+  </section>
+  <p id="job" class="job" aria-live="polite"></p>
+  <section id="notice" class="notice" hidden></section>
+  <section id="empty" class="empty" hidden><h2>暂无可展示资讯</h2>
+    <p>外部资讯项目尚未生成报告，或本机路径暂时不可用。</p></section>
+  <div id="content" hidden>
+    <section class="overview-panel"><h2>今日脉络</h2><ul id="overview"></ul></section>
+    <section class="wechat-panel">
+      <div class="section-heading"><div><p class="eyebrow">WECHAT DAILY</p>
+        <h2>每日微信文章</h2></div><span id="wechat-meta"></span></div>
+      <div id="wechat-cards" class="wechat-grid"></div>
+    </section>
+    <div id="filters" class="filters" role="tablist" aria-label="资讯分类"></div>
+    <section><div class="section-heading"><div><p class="eyebrow">IMPORTANT NEWS</p>
+      <h2>重要资讯</h2></div><span id="count"></span></div><div id="cards" class="news-grid"></div></section>
+    <section class="extras"><h2>补充阅读</h2><p>发布时间尚未完整核验或属于背景材料，不计入严格精选。</p>
+      <ul id="extras"></ul></section>
+    <section><div class="section-heading"><div><p class="eyebrow">SOURCE HEALTH</p>
+      <h2>来源覆盖</h2></div></div><div id="sources" class="source-grid"></div></section>
+    <section id="errors-section" class="errors" hidden><h2>本次提示</h2><ul id="errors"></ul></section>
+  </div>
+  <section class="disclaimer"><strong>研究用途</strong><span>内容来自公开资讯的自动筛选与摘要，仅作产业研究辅助，不构成投资建议。</span></section>
+</main>
+<script src="/ui.js"></script><script src="/news.js"></script>
+</body>
+</html>

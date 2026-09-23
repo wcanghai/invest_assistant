@@ -17,6 +17,9 @@ timezone = "Asia/Shanghai"
 report_host = "127.0.0.1"
 report_port = 8766
 
+[integrations]
+web_read_root = "../web_read"
+
 [scheduler]
 report_slots = ["08:00", "15:30"]
 sync_not_before = "15:30"

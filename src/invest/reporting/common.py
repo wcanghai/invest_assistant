@@ -12,6 +12,7 @@ from pathlib import Path
 SOURCE_DB = load_settings().databases["market"]
 REPORT_DB = load_settings().databases["reports"]
 CONFIG = ROOT / "configs/daily_report_universe.json"
+TRACKING = ROOT / "data/daily_tracking.json"
 SHANGHAI = timezone(timedelta(hours=8))
 CATEGORIES = {
     "a_share_stocks": "自选股票", "industry_etfs": "行业 ETF",
@@ -32,6 +33,9 @@ def load_config(path=CONFIG):
     for category in CATEGORIES:
         if not isinstance(config.get(category), dict):
             raise ValueError(f"配置缺少证券字典：{category}")
+    if Path(path).resolve() == CONFIG.resolve():
+        from invest.reporting.watchlist import load
+        config.update(load())
     return config
 
 

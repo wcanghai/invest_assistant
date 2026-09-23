@@ -22,7 +22,7 @@ PROFILE_WEIGHTS = {
 PROFILE_NAMES = {"conservative": "稳健型", "balanced": "均衡型", "aggressive": "进取型"}
 CATEGORY_NAMES = {"momentum": "动量", "trend": "趋势", "low_risk": "低风险", "liquidity": "流动性"}
 LOOKBACK_DAYS = 300
-TOP_COUNT = 20
+TOP_COUNT = 30
 
 
 def connect_readonly(path: str | Path) -> sqlite3.Connection:

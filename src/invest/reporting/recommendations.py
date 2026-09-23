@@ -257,7 +257,7 @@ def generate(market_db: str | Path, progress=None) -> dict[str, Any]:
             )
             items = [
                 _candidate(code, scores.loc[code], rank, value, data)
-                for rank, (code, value) in enumerate(ranked.head(20).items(), 1)
+                for rank, (code, value) in enumerate(ranked.head(30).items(), 1)
             ]
             results[profile] = {
                 "profile": profile,
